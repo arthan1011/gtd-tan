@@ -4,6 +4,7 @@ import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 /**
  * Created by arthan on 4/12/17 .
@@ -18,6 +19,14 @@ class AppRedirectFilter : Filter {
 
         if (request is HttpServletRequest) {
             val path = request.servletPath
+
+            if (path == "/app") {
+                if (response is HttpServletResponse) {
+                    response.sendRedirect("/app/")
+                    return
+                }
+            }
+
             if (path.startsWith("/app") &&
                     path != "/app/index.html" &&
                     !path.startsWith("/app/assets")) {
