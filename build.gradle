@@ -1,5 +1,6 @@
 import com.gtd.build.DumpPostgresTask
 import com.gtd.build.PracticeTask
+import com.gtd.build.BuildEmberTask
 
 buildscript {
 	ext {
@@ -10,7 +11,8 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath gradleApi()
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
 		classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
 		classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
 	}
@@ -44,7 +46,6 @@ dependencies {
 	compile("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
 	runtime('org.postgresql:postgresql')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
-	compile gradleApi()
 	compile localGroovy()
 }
 
@@ -57,3 +58,6 @@ task greeting(type: PracticeTask) {
 }
 
 task dumpPSQL(type: DumpPostgresTask)
+task emberBuild(type: BuildEmberTask)
+
+processResources.dependsOn emberBuild

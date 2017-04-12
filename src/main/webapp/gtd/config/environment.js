@@ -4,7 +4,7 @@ module.exports = function(environment) {
   var ENV = {
     modulePrefix: 'gtd',
     environment: environment,
-    rootURL: '/',
+    rootURL: '/app',
     locationType: 'auto',
     EmberENV: {
       FEATURES: {

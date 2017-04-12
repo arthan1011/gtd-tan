@@ -26,3 +26,4 @@ gradle/
 
 /src/main/webapp/gtd/node_modules/
 /src/main/webapp/gtd/tmp/
+/src/main/resources/static/app/
