@@ -56,4 +56,4 @@ task greeting(type: PracticeTask) {
     message = "Hello, user"
 }
 
-task dumbPSQL(type: DumpPostgresTask)
+task dumpPSQL(type: DumpPostgresTask)

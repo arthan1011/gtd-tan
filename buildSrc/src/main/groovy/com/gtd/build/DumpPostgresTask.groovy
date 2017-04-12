@@ -41,8 +41,7 @@ class DumpPostgresTask extends DefaultTask {
             getProject().logger.quiet "executing pg_dump on Unix machine"
             getProject().exec {
                 workingDir "${getProject().projectDir}"
-                commandLine "PGPASSWORD=${password}"
-                commandLine "pg_dump -U ${user} ${database} > ${DUMP_FILE_NAME}"
+                commandLine 'bash', '-c', "PGPASSWORD=${password} pg_dump -h localhost --port 5432 -U ${user} ${database} > ${DUMP_FILE_NAME}"
             }
         }
 
