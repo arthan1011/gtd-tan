@@ -24,3 +24,5 @@ nbdist/
 .nb-gradle/
 gradle/
 
+/src/main/webapp/gtd/node_modules/
+/src/main/webapp/gtd/tmp/
