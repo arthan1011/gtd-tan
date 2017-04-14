@@ -21,8 +21,11 @@ class User {
 
     var enabled: Boolean = false
 
+    var role: String = ""
+
     override fun toString(): String {
-        return "User(id=$id, username='$username', enabled=$enabled)"
+        return "User(id=$id, username='$username', password='$password', enabled=$enabled, role='$role')"
     }
+
 
 }

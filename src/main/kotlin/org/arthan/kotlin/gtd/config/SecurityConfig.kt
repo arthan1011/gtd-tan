@@ -1,5 +1,6 @@
 package org.arthan.kotlin.gtd.config
 
+import org.arthan.kotlin.gtd.domain.service.CurrentUserDetailsService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.security.SecurityProperties
 import org.springframework.context.annotation.Configuration
@@ -21,17 +22,20 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
     @Autowired
     lateinit var datasource: DataSource
 
+    @Autowired
+    lateinit var userDetailsService: CurrentUserDetailsService
+
     override fun configure(auth: AuthenticationManagerBuilder?) {
         /*auth?.inMemoryAuthentication()
                 ?.withUser("admin")?.password("admin1")?.roles("ADMIN")*/
 
-        auth?.jdbcAuthentication()?.dataSource(datasource)
+        /*auth?.jdbcAuthentication()?.dataSource(datasource)
                 ?.usersByUsernameQuery("select username, password, enabled from users where username=?")
                 ?.authoritiesByUsernameQuery("SELECT u.username, u.role " +
                         "FROM users u " +
-                        "WHERE u.username=?")
+                        "WHERE u.username=?")*/
 
-//        auth?.userDetailsService()
+        auth?.userDetailsService(userDetailsService)
     }
 
     override fun configure(http: HttpSecurity?) {
