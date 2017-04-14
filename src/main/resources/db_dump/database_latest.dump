@@ -35,18 +35,6 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: authority; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE authority (
-    userid integer NOT NULL,
-    role character varying(64) NOT NULL
-);
-
-
-ALTER TABLE authority OWNER TO postgres;
-
---
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -54,7 +42,8 @@ CREATE TABLE users (
     userid integer NOT NULL,
     username character varying(128) NOT NULL,
     password character varying(128) NOT NULL,
-    enabled boolean DEFAULT true
+    enabled boolean DEFAULT true,
+    role character varying(64) NOT NULL
 );
 
 
@@ -89,21 +78,12 @@ ALTER TABLE ONLY users ALTER COLUMN userid SET DEFAULT nextval('users_userid_seq
 
 
 --
--- Data for Name: authority; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY authority (userid, role) FROM stdin;
-1	ADMIN
-\.
-
-
---
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY users (userid, username, password, enabled) FROM stdin;
-1	arthan	qazqaz	t
-4	python	python	t
+COPY users (userid, username, password, enabled, role) FROM stdin;
+1	arthan	qazqaz	t	ADMIN
+4	python	python	t	USER
 \.
 
 
@@ -112,14 +92,6 @@ COPY users (userid, username, password, enabled) FROM stdin;
 --
 
 SELECT pg_catalog.setval('users_userid_seq', 4, true);
-
-
---
--- Name: authority authority_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY authority
-    ADD CONSTRAINT authority_pkey PRIMARY KEY (userid);
 
 
 --
@@ -135,14 +107,6 @@ ALTER TABLE ONLY users
 --
 
 CREATE UNIQUE INDEX users_userid_uindex ON users USING btree (userid);
-
-
---
--- Name: authority authority_users_userid_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY authority
-    ADD CONSTRAINT authority_users_userid_fk FOREIGN KEY (userid) REFERENCES users(userid) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --

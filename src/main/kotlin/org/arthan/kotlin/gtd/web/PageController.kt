@@ -1,4 +1,4 @@
-package org.arthan.kotlin.web
+package org.arthan.kotlin.gtd.web
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Controller
@@ -18,5 +18,10 @@ class PageController {
     fun main(model: MutableMap<String, Any>): String {
         model.put("msg", message)
         return "main"
+    }
+
+    @GetMapping("/login")
+    fun login(): String {
+        return "login"
     }
 }

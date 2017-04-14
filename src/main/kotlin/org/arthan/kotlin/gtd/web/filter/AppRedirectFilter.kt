@@ -1,6 +1,5 @@
-package org.arthan.kotlin.web.filter
+package org.arthan.kotlin.gtd.web.filter
 
-import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
@@ -11,7 +10,6 @@ import javax.servlet.http.HttpServletResponse
  */
 
 @Component
-@Order(1)
 class AppRedirectFilter : Filter {
     override fun init(filterConfig: FilterConfig?) {}
 

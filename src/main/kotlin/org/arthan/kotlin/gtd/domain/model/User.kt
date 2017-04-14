@@ -1,4 +1,4 @@
-package org.arthan.kotlin.domain.model
+package org.arthan.kotlin.gtd.domain.model
 
 import javax.persistence.*
 

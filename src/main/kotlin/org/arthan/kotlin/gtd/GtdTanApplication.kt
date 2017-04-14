@@ -1,6 +1,6 @@
-package org.arthan.kotlin
+package org.arthan.kotlin.gtd
 
-import org.arthan.kotlin.web.filter.AppRedirectFilter
+import org.arthan.kotlin.gtd.web.filter.AppRedirectFilter
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.web.servlet.FilterRegistrationBean

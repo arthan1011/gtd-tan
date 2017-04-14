@@ -1,6 +1,6 @@
-package org.arthan.kotlin.domain.repository
+package org.arthan.kotlin.gtd.domain.repository
 
-import org.arthan.kotlin.domain.model.User
+import org.arthan.kotlin.gtd.domain.model.User
 import org.springframework.data.repository.CrudRepository
 
 /**

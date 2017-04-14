@@ -1,4 +1,4 @@
-package org.arthan.kotlin.web.rest
+package org.arthan.kotlin.gtd.web.rest
 
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController

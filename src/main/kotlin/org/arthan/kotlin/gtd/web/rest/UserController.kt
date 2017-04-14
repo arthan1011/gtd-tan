@@ -1,6 +1,6 @@
-package org.arthan.kotlin.web.rest
+package org.arthan.kotlin.gtd.web.rest
 
-import org.arthan.kotlin.domain.repository.UserRepository
+import org.arthan.kotlin.gtd.domain.repository.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
