@@ -24,4 +24,9 @@ class PageController {
     fun login(): String {
         return "login"
     }
+
+    @GetMapping("/signup")
+    fun singUp(): String {
+        return "registration"
+    }
 }

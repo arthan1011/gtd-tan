@@ -2,10 +2,7 @@ package org.arthan.kotlin.gtd.web.rest
 
 import org.arthan.kotlin.gtd.domain.repository.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 /**
  * Created by arthan on 4/9/17 .

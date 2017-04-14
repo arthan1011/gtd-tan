@@ -8,20 +8,18 @@ import javax.persistence.*
 
 @Entity
 @Table(name = "users")
-class User {
+class User(
+        var username: String,
+        var password: String,
+        var role: String,
+        var enabled: Boolean = true
+) {
+    constructor(): this("", "", "")
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "userid")
     var id: Long = 0
-
-    var username: String = ""
-
-    var password: String = ""
-
-    var enabled: Boolean = false
-
-    var role: String = ""
 
     override fun toString(): String {
         return "User(id=$id, username='$username', password='$password', enabled=$enabled, role='$role')"

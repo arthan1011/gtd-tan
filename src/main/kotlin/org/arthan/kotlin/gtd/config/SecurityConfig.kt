@@ -26,23 +26,14 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
     lateinit var userDetailsService: CurrentUserDetailsService
 
     override fun configure(auth: AuthenticationManagerBuilder?) {
-        /*auth?.inMemoryAuthentication()
-                ?.withUser("admin")?.password("admin1")?.roles("ADMIN")*/
-
-        /*auth?.jdbcAuthentication()?.dataSource(datasource)
-                ?.usersByUsernameQuery("select username, password, enabled from users where username=?")
-                ?.authoritiesByUsernameQuery("SELECT u.username, u.role " +
-                        "FROM users u " +
-                        "WHERE u.username=?")*/
-
         auth?.userDetailsService(userDetailsService)
     }
 
     override fun configure(http: HttpSecurity?) {
         http?.authorizeRequests()
-                ?.anyRequest()?.authenticated()
                 ?.antMatchers("/signup")?.permitAll() // sign up page
-                ?.antMatchers("/user/signup")?.permitAll() // sign up url
+                ?.antMatchers("/user/registration")?.permitAll() // sign up url
+                ?.anyRequest()?.authenticated()
                 ?.and()
                 ?.formLogin()
                     ?.loginPage("/login")
@@ -53,5 +44,6 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
                 ?.logout()
                     ?.logoutUrl("/logout")
                     ?.logoutSuccessUrl("/app")
+                ?.invalidateHttpSession(true)
     }
 }
