@@ -14,11 +14,19 @@ class BuildEmberTask extends DefaultTask {
             getProject().logger.quiet("building ember on Windows machine")
             getProject().exec {
                 workingDir "${getProject().projectDir}\\src\\main\\webapp\\gtd"
+                commandLine 'cmd', '/c', "npm install"
+            }
+            getProject().exec {
+                workingDir "${getProject().projectDir}\\src\\main\\webapp\\gtd"
                 commandLine 'cmd', '/c', "ember build"
             }
         }
         if (Os.isFamily(Os.FAMILY_UNIX)) {
             getProject().logger.quiet("building ember on Unix machine")
+            getProject().exec {
+                workingDir "${getProject().projectDir}/src/main/webapp/gtd"
+                commandLine 'bash', '-c', "npm install"
+            }
             getProject().exec {
                 workingDir "${getProject().projectDir}/src/main/webapp/gtd"
                 commandLine 'bash', '-c', "ember build"
