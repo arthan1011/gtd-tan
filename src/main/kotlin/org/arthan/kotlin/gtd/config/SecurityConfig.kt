@@ -31,8 +31,7 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
 
     override fun configure(http: HttpSecurity?) {
         http?.authorizeRequests()
-                ?.antMatchers("/signup")?.permitAll() // sign up page
-                ?.antMatchers("/user/registration")?.permitAll() // sign up url
+                ?.antMatchers("/registration")?.permitAll() // sign up page
                 ?.anyRequest()?.authenticated()
                 ?.and()
                 ?.formLogin()

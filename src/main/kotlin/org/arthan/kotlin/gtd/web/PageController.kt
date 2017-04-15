@@ -25,8 +25,8 @@ class PageController {
         return "login"
     }
 
-    @GetMapping("/signup")
-    fun singUp(): String {
+    @GetMapping("/registration")
+    fun singUp(newUserForm: NewUserForm): String {
         return "registration"
     }
 }
