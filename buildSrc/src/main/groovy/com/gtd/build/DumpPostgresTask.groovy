@@ -7,25 +7,15 @@ import org.apache.tools.ant.taskdefs.condition.Os
 /**
  * Created by arthan on 11.04.2017. | Project gtd-tan
  */
-class DumpPostgresTask extends DefaultTask {
-
-    public static final String APPLICATION_PROPERTIES_PATH = "src/main/resources/application.properties"
-    public static final String DUMP_FILES_FOLDER = "src/main/resources/db_dump"
-    public static final String DUMP_FILE_NAME = "database.dump"
-    public static final String DUMP_FILE_NAME_LATEST = "database_latest.dump"
+class DumpPostgresTask extends AppPropertiesAccess {
 
     @TaskAction
     def action() {
-        Properties props = readProperties()
-        def url = props.getProperty("spring.datasource.url")
-        url.lastIndexOf('/')
-
-
-        executePSQL(getUsername(), getPassword(), getDatabaseName())
+        createDumpFile(getUsername(), getPassword(), getDatabaseName())
         moveDumpFile()
     }
 
-    def executePSQL(String user, String password, String database) {
+    def createDumpFile(String user, String password, String database) {
         println "executing pg_dump BEGIN"
         println "DB user: ${user}, password: ${password}, database: ${database}"
 
@@ -62,28 +52,5 @@ class DumpPostgresTask extends DefaultTask {
         if (!moveSuccessful) {
             println "Problems moving file"
         }
-    }
-
-    def readProperties() {
-        Properties props = new Properties()
-        getProject().file(APPLICATION_PROPERTIES_PATH).withInputStream {
-            props.load(it)
-        }
-        return props
-    }
-
-    def getDatabaseName() {
-        Properties props = readProperties()
-        def url = props.getProperty("spring.datasource.url")
-        def slashIndex = url.lastIndexOf('/')
-        return url.substring(slashIndex + 1)
-    }
-
-    def getUsername() {
-        return readProperties().getProperty("spring.datasource.username")
-    }
-
-    def getPassword() {
-        return readProperties().getProperty("spring.datasource.password")
     }
 }

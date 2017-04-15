@@ -1,4 +1,5 @@
 import com.gtd.build.DumpPostgresTask
+import com.gtd.build.InstallPostgresBase
 import com.gtd.build.PracticeTask
 import com.gtd.build.BuildEmberTask
 
@@ -60,8 +61,14 @@ task practice(type: PracticeTask)
 task greeting(type: PracticeTask) {
     message = "Hello, user"
 }
+task scanInput << {
+	println "Enter a word \n"
+	def result = new Scanner(System.in).next()
+	println "Entered word: $result"
+}
 
 task dumpPSQL(type: DumpPostgresTask)
 task emberBuild(type: BuildEmberTask)
+task installDump(type: InstallPostgresBase)
 
 processResources.dependsOn emberBuild
