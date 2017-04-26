@@ -43,6 +43,10 @@ dependencies {
 	compile('org.springframework.boot:spring-boot-starter-security')
 	compile('org.springframework.boot:spring-boot-starter-thymeleaf')
 	compile("org.springframework.boot:spring-boot-devtools")
+	// https://mvnrepository.com/artifact/org.springframework/spring-websocket
+	compile group: 'org.springframework', name: 'spring-websocket', version: '4.3.7.RELEASE'
+	// https://mvnrepository.com/artifact/org.springframework/spring-messaging
+	compile group: 'org.springframework', name: 'spring-messaging', version: '4.3.7.RELEASE'
 	compile('net.sourceforge.nekohtml:nekohtml:1.9.22')
 	compile('org.springframework.boot:spring-boot-starter-web')
 	compile("org.jetbrains.kotlin:kotlin-stdlib-jre8:${kotlinVersion}")
