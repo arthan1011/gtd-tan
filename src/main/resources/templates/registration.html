@@ -23,6 +23,7 @@
             <span th:if="${#fields.hasErrors(('repeatedPassword'))}" th:errors="*{repeatedPassword}">Username error</span>
         </div>
         <button type="submit">Sign up</button>
+        <a th:href="@{/login}">Log in</a>
     </form>
 </div>
 </body>
