@@ -12,5 +12,5 @@ test('it renders', function(assert) {
 
   this.render(hbs`{{app-header}}`);
 
-  assert.equal(this.$().text().trim(), 'Gtd header');
+  assert.equal(this.$('.header-label').text().trim(), 'Gtd header');
 });
