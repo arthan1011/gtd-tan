@@ -7,7 +7,10 @@ const Router = Ember.Router.extend({
 });
 
 Router.map(function() {
-  this.route('main');
+  this.route('main', function() {
+    this.route('current');
+    this.route('archive');
+  });
 });
 
 export default Router;
