@@ -1,6 +1,8 @@
+@import "colors";
+
 .gtd-header {
-  background-color: #525252;
-  color: #d9cdbd;
+  background-color: $color-primary-0;
+  color: $color-primary-5;
   padding: 5px 7px;
   .header-left {
     display: inline-block;

@@ -14,11 +14,11 @@ test('visiting /main and redirected to current sub route', function(assert) {
 test('"Current" and "Archive" routes should be accessible', function (assert) {
   visit('/main');
 
-  click('div.t-link_to_archive a').then(() => {
+  click('a.t_link-to-archive').then(() => {
     assert.equal(currentURL(), '/main/archive');
   });
 
-  click('div.t-link_to_current a').then(() => {
+  click('a.t_link-to-current').then(() => {
     assert.equal(currentURL(), '/main/current');
   });
 

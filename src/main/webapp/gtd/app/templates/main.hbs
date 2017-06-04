@@ -2,8 +2,8 @@
   {{app-header}}
   <div class="main-container">
     <div class="left-menu">
-      <div class="t-link_to_current">{{#link-to "main.current"}}Current{{/link-to}}</div>
-      <div class="t-link_to_archive">{{#link-to "main.archive"}}Archive{{/link-to}}</div>
+      {{#link-to "main.current" class="t_link-to-current"}}Current{{/link-to}}
+      {{#link-to "main.archive" class="t_link-to-archive"}}Archive{{/link-to}}
     </div>
     <div class="main-content">
       {{outlet}}
