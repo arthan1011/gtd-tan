@@ -42,7 +42,7 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
                 ?.and()
                 ?.logout()
                     ?.logoutUrl("/logout")
-                    ?.logoutSuccessUrl("/app")
+                    ?.logoutSuccessUrl("/ui")
                 ?.invalidateHttpSession(true)
     }
 }
