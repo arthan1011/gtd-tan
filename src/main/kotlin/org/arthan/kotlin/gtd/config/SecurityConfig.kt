@@ -29,9 +29,10 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
         auth?.userDetailsService(userDetailsService)
     }
 
-    override fun configure(http: HttpSecurity?) {
-        http?.authorizeRequests()
-                ?.antMatchers("/registration")?.permitAll() // sign up page
+    override fun configure(http: HttpSecurity) {
+        http.csrf().disable()
+                .authorizeRequests()
+                .antMatchers("/registration")?.permitAll() // sign up page
                 ?.anyRequest()?.authenticated()
                 ?.and()
                 ?.formLogin()

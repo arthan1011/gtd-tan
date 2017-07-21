@@ -7,9 +7,9 @@
     <div>
         <h2>Login form</h2>
         <form th:attr="action=@{/login}" method="POST">
-            <input type="hidden"
+            <!--<input type="hidden"
                    th:name="${_csrf.parameterName}"
-                   th:value="${_csrf.token}">
+                   th:value="${_csrf.token}">-->
             <div>
                 <input type="text" name="username" id="username" placeholder="Username" required="required" />
             </div>
