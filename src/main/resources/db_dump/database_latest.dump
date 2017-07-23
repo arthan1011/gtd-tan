@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.2
--- Dumped by pg_dump version 9.6.2
+-- Dumped from database version 9.6.3
+-- Dumped by pg_dump version 9.6.3
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -33,6 +33,40 @@ SET search_path = public, pg_catalog;
 SET default_tablespace = '';
 
 SET default_with_oids = false;
+
+--
+-- Name: daily_task; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE daily_task (
+    id integer NOT NULL,
+    userid integer NOT NULL,
+    name character varying(255) NOT NULL
+);
+
+
+ALTER TABLE daily_task OWNER TO postgres;
+
+--
+-- Name: daily_task_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE daily_task_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE daily_task_id_seq OWNER TO postgres;
+
+--
+-- Name: daily_task_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE daily_task_id_seq OWNED BY daily_task.id;
+
 
 --
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres
@@ -71,10 +105,37 @@ ALTER SEQUENCE users_userid_seq OWNED BY users.userid;
 
 
 --
+-- Name: daily_task id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY daily_task ALTER COLUMN id SET DEFAULT nextval('daily_task_id_seq'::regclass);
+
+
+--
 -- Name: users userid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY users ALTER COLUMN userid SET DEFAULT nextval('users_userid_seq'::regclass);
+
+
+--
+-- Data for Name: daily_task; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY daily_task (id, userid, name) FROM stdin;
+1	1	Be cool
+2	1	Look awesome
+3	1	Don't break a promise
+4	4	Go to Japan
+5	4	Return home
+\.
+
+
+--
+-- Name: daily_task_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('daily_task_id_seq', 5, true);
 
 
 --
@@ -95,6 +156,14 @@ SELECT pg_catalog.setval('users_userid_seq', 4, true);
 
 
 --
+-- Name: daily_task daily_task_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY daily_task
+    ADD CONSTRAINT daily_task_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -103,10 +172,25 @@ ALTER TABLE ONLY users
 
 
 --
+-- Name: daily_task_id_uindex; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX daily_task_id_uindex ON daily_task USING btree (id);
+
+
+--
 -- Name: users_userid_uindex; Type: INDEX; Schema: public; Owner: postgres
 --
 
 CREATE UNIQUE INDEX users_userid_uindex ON users USING btree (userid);
+
+
+--
+-- Name: daily_task daily_task_userid_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY daily_task
+    ADD CONSTRAINT daily_task_userid_fk FOREIGN KEY (userid) REFERENCES users(userid) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
