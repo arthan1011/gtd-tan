@@ -3,6 +3,8 @@ package org.arthan.kotlin.gtd.domain.model
 import javax.persistence.*
 
 /**
+ * Entity for registered application users
+ *
  * Created by arthan on 4/9/17 .
  */
 
