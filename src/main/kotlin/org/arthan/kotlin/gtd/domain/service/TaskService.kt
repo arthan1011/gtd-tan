@@ -2,6 +2,8 @@ package org.arthan.kotlin.gtd.domain.service
 
 import org.arthan.kotlin.gtd.domain.model.DailyTask
 import org.arthan.kotlin.gtd.domain.repository.DailyTaskRepository
+import org.arthan.kotlin.gtd.domain.repository.UserRepository
+import org.arthan.kotlin.gtd.web.rest.dto.DailyTaskTO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -13,10 +15,17 @@ import org.springframework.stereotype.Service
 
 @Service
 class TaskService @Autowired constructor(
-        val dailyTaskRepository: DailyTaskRepository
+        val dailyTaskRepository: DailyTaskRepository,
+        val userRepository: UserRepository
 ) {
     fun findByUsername(username: String): List<DailyTask> {
         val tasks = dailyTaskRepository.findByUsername(username)
         return tasks
+    }
+
+    fun createDailyTask(newTask: DailyTaskTO, username: String) {
+        val userId = userRepository.findByUsername(username).id
+        val taskToSave = DailyTask(name = newTask.name, userId = userId)
+        dailyTaskRepository.save(taskToSave)
     }
 }

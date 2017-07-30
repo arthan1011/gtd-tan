@@ -13,7 +13,6 @@ class ForwardFilter : Filter {
     }
 
     override fun doFilter(request: ServletRequest?, response: ServletResponse?, chain: FilterChain) {
-        println("through Forward filter!")
         if (request is HttpServletRequest) {
             request.getRequestDispatcher("/ui").forward(request, response)
         } else {

@@ -5,9 +5,7 @@ import org.arthan.kotlin.gtd.domain.service.TaskService
 import org.arthan.kotlin.gtd.web.rest.dto.DailyTaskTO
 import org.arthan.kotlin.gtd.web.rest.dto.toTO
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.security.Principal
 
 /**
@@ -22,11 +20,13 @@ class DailyTaskResource @Autowired constructor(
 
     @GetMapping("/daily")
     fun getUserDailyTasks(principal: Principal): List<DailyTaskTO> {
-
         val name = principal.name
-
         val list: List<DailyTask> = taskService.findByUsername(name)
-
         return list.map { it.toTO() }
+    }
+
+    @PostMapping("/daily")
+    fun createNewDailyTask( @RequestBody newTask: DailyTaskTO, principal: Principal) {
+        taskService.createDailyTask(newTask, principal.name)
     }
 }

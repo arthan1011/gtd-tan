@@ -18,7 +18,7 @@ import javax.persistence.*
 )
 data class DailyTask(
         @Id
-        @GeneratedValue
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
         val id: Long? = null,
 
         @Column(name = "userid")
