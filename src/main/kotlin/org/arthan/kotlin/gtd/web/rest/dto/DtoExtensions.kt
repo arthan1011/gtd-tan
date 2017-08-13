@@ -1,6 +1,7 @@
 package org.arthan.kotlin.gtd.web.rest.dto
 
 import org.arthan.kotlin.gtd.domain.model.DailyTask
+import java.time.LocalDate
 
 /**
  * Extension functions for model objects
@@ -8,6 +9,14 @@ import org.arthan.kotlin.gtd.domain.model.DailyTask
  * Created by arthan on 23.07.2017. | Project gtd-tan
  */
 
-fun DailyTask.toTO(): DailyTaskTO {
-    return DailyTaskTO(name ?: "")
+fun DailyTask.toTO(): DailyTaskDTO {
+    return DailyTaskDTO(name ?: "")
+}
+
+fun LocalDate.toDTO(): DateDTO {
+    return DateDTO(
+            day = dayOfMonth.toString(),
+            month = monthValue.toString(),
+            year = year.toString()
+    )
 }
