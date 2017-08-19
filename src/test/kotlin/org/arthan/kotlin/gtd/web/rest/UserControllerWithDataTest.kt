@@ -5,12 +5,11 @@ import org.arthan.kotlin.gtd.domain.repository.UserRepository
 import org.hamcrest.Matchers.*
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -25,12 +24,13 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 @SpringBootTest
 @AutoConfigureMockMvc
 @WithMockUser(username="administrator",roles= arrayOf("USER","ADMIN"))
-class UserControllerTest {
+@ActiveProfiles(profiles = arrayOf("test"))
+class UserControllerWithDataTest {
     @Autowired
     lateinit var mockMvc: MockMvc
 
-    @MockBean
-    lateinit var userRepo: UserRepository
+    @Autowired
+    lateinit var userRepository: UserRepository
 
     @Test
     fun shouldGetPrincipalName() {
@@ -46,9 +46,10 @@ class UserControllerTest {
         val password = "test_password"
         val role = "role_admin"
         val isEnabled = false
-        Mockito.`when`(userRepo.findOne(1L)).thenReturn(User(
-                username, password, role, isEnabled))
-        mockMvc.perform(get("/user/1"))
+
+        val userId = userRepository.save(User(username, password, role, isEnabled)).id
+
+        mockMvc.perform(get("/user/$userId"))
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("username", `is`(username)))
                 .andExpect(jsonPath("password", `is`(password)))

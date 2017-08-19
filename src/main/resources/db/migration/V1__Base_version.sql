@@ -31,10 +31,9 @@ create unique index daily_task_id_uindex
   on daily_task (id)
 ;
 
-INSERT INTO public.users (userid, username, password, enabled, role) VALUES (1, 'arthan', 'arthan', true, 'ADMIN');
-INSERT INTO public.users (userid, username, password, enabled, role) VALUES (4, 'python', 'python', true, 'USER');
-INSERT INTO public.daily_task (id, userid, name) VALUES (1, 1, 'Be cool');
-INSERT INTO public.daily_task (id, userid, name) VALUES (2, 1, 'Look awesome');
-INSERT INTO public.daily_task (id, userid, name) VALUES (3, 1, 'Don''t break a promise');
-INSERT INTO public.daily_task (id, userid, name) VALUES (4, 4, 'Go to Japan');
-INSERT INTO public.daily_task (id, userid, name) VALUES (5, 4, 'Return home');
+create unique index users_username_uindex
+  on users (username)
+;
+
+INSERT INTO public.users (username, password, enabled, role) VALUES ('arthan', 'arthan', true, 'ADMIN');
+INSERT INTO public.users (username, password, enabled, role) VALUES ('python', 'python', true, 'USER');
