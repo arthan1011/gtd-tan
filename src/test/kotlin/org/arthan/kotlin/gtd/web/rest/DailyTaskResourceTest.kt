@@ -36,11 +36,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 class DailyTaskResourceTest {
 
 	companion object {
-		val USERNAME_1 = randomName()
-		val PASSWORD_1 = randomName()
+		val USERNAME_1: String = randomName()
+		val PASSWORD_1: String = randomName()
+        val initialized: AtomicBoolean = AtomicBoolean(false)
 	}
 
-    val initialized: AtomicBoolean = AtomicBoolean(false)
     @Autowired
     lateinit var mockMvc: MockMvc
     @Autowired
