@@ -28,17 +28,23 @@ class TaskService @Autowired constructor(
         return tasks
     }
 
-    fun createDailyTask(newTask: DailyTaskDTO, username: String) {
+    fun createDailyTask(newTask: DailyTaskDTO, username: String): Long {
         val userId = userRepository.findByUsername(username).id
         val taskToSave = DailyTask(name = newTask.name, userId = userId)
-        dailyTaskRepository.save(taskToSave)
+        return dailyTaskRepository.save(taskToSave).id ?: throw ServiceException("daily task save error")
     }
 
-    fun getDateLineDates(listSize: Int): List<DatelineItemDTO> {
+    fun getDateLineDates(listSize: Int, username: String): List<DatelineItemDTO> {
 		val dates = createDates(listSize)
-
+		val tasks = findByUsername(username)
 		val dateLineItems = dates.map { dateDTO ->
-			DatelineItemDTO(dateDTO, emptyList(), isToday(dateDTO))
+			DatelineItemDTO(
+					dateDTO,
+					tasks.map { (id) ->
+						DailyTaskDTO(null, id!!, completed = null)
+					},
+					isToday(dateDTO)
+			)
 		}
 
         return dateLineItems

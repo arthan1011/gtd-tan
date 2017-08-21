@@ -95,12 +95,15 @@ class DailyTaskResourceTest {
 	@Test
 	fun shouldRetrieveDatelineItems() {
 		// add one task
-		val name = "test_task"
-		val taskDTO = DailyTaskDTO(name)
+		val taskName = "test_task"
+		val taskDTO = DailyTaskDTO(taskName)
+        var savedTaskId: Long = -1L
 		mockMvc.perform(post("/rest/task/daily")
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
-				.content(parser.toJson(taskDTO)))
+                .with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(PASSWORD_1))
+                .content(parser.toJson(taskDTO)))
 				.andExpect(status().isOk)
+                .andDo { savedTaskId = jsonParser.parse(it.response.contentAsString).asJsonObject["id"].asLong }
 
 		var dailyData: DailyDTO? = null
 		mockMvc.perform(get("/rest/task/daily")
@@ -122,5 +125,13 @@ class DailyTaskResourceTest {
 		assertEquals("last dateline item should be this year", date.year.toString(), lastItem.date.year)
 		assertEquals("last dateline item should be this month", date.monthValue.toString(), lastItem.date.month)
 		assertEquals("last dateline item should be this day", date.dayOfMonth.toString(), lastItem.date.day)
+
+        val allItemsHaveExactlyOneTask = dataLineItems.all { it.tasks.size == 1 }
+        val allItemsHaveTaskWithSavedId = dataLineItems.all { it.tasks.first().id == savedTaskId }
+        val allTasksInIncompleteState = dataLineItems.all { it.tasks.all { task -> task.completed == null } }
+
+        assertTrue("All items should have exactly one task", allItemsHaveExactlyOneTask)
+        assertTrue("All items should have task with saved id", allItemsHaveTaskWithSavedId)
+        assertTrue("All Tasks should be in incomplete state", allTasksInIncompleteState)
 	}
 }
