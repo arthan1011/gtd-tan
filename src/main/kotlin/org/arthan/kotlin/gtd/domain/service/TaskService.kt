@@ -37,16 +37,23 @@ class TaskService @Autowired constructor(
     fun getDateLineDates(listSize: Int): List<DatelineItemDTO> {
 		val dates = createDates(listSize)
 
-		val dateLineItems = dates.map {
-			DatelineItemDTO(it, emptyList(), false)
+		val dateLineItems = dates.map { dateDTO ->
+			DatelineItemDTO(dateDTO, emptyList(), isToday(dateDTO))
 		}
 
         return dateLineItems
     }
 
+	private fun isToday(dateDTO: DateDTO): Boolean {
+		val now = LocalDate.now()
+		return now.year == dateDTO.year.toInt() &&
+				now.monthValue == dateDTO.month.toInt() &&
+				now.dayOfMonth == dateDTO.day.toInt()
+	}
+
 	private fun createDates(
 			listSize: Int): List<DateDTO> {
-		val currentDate: LocalDate = dateService.getCurrentDate()
+		val currentDate = dateService.getCurrentDate()
 		var startDate = currentDate.minusDays(listSize.toLong() - 1)
 		val dates = mutableListOf<DateDTO>()
 		for (i in 1..listSize) {

@@ -20,6 +20,8 @@ import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import java.time.LocalDate
+import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -113,6 +115,12 @@ class DailyTaskResourceTest {
 				DailyTaskResource.DATE_LINE_ITEMS_SIZE,
 				dataLineItems.size)
 
+		val lastItem = dataLineItems.last()
+		val date = LocalDate.now()
 
+		assertTrue("last dateline item should be today", lastItem.today)
+		assertEquals("last dateline item should be this year", date.year.toString(), lastItem.date.year)
+		assertEquals("last dateline item should be this month", date.monthValue.toString(), lastItem.date.month)
+		assertEquals("last dateline item should be this day", date.dayOfMonth.toString(), lastItem.date.day)
 	}
 }
