@@ -11,8 +11,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
@@ -26,17 +29,22 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 @AutoConfigureMockMvc
 @WithMockUser(username="administrator",roles= arrayOf("USER","ADMIN"))
 class UserControllerTest {
+
+	companion object {
+		private val USER_NAME = "admin"
+	}
+
     @Autowired
     lateinit var mockMvc: MockMvc
 
     @MockBean
     lateinit var userRepo: UserRepository
 
-    @Test
+	@Test
     fun shouldGetPrincipalName() {
-        mockMvc.perform(get("/user/hello"))
+        mockMvc.perform(get("/user/hello").with(user(USER_NAME).password("pass")))
                 .andExpect(status().isOk)
-                .andExpect(jsonPath("name", `is`("administrator")))
+                .andExpect(jsonPath("name", `is`(USER_NAME)))
                 .andDo { println(it.response.contentAsString) }
     }
 

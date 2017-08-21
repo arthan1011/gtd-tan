@@ -5,4 +5,4 @@ package org.arthan.kotlin.gtd.web.rest.dto
  *
  * Created by arthan on 22.07.2017. | Project gtd-tan
  */
-data class DailyTaskDTO(val name: String, val id: Long = -1L)
+data class DailyTaskDTO(val name: String? = null, val id: Long = -1L)

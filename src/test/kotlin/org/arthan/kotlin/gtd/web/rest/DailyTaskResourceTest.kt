@@ -4,8 +4,7 @@ import org.arthan.kotlin.gtd.domain.model.User
 import org.arthan.kotlin.gtd.domain.repository.UserRepository
 import org.arthan.kotlin.gtd.web.rest.dto.DailyDTO
 import org.arthan.kotlin.gtd.web.rest.dto.DailyTaskDTO
-import org.hamcrest.Matchers
-import org.hamcrest.Matchers.*
+import org.arthan.kotlin.gtd.web.rest.dto.DatelineItemDTO
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -15,12 +14,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -35,6 +33,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 @ActiveProfiles(profiles = arrayOf("test"))
 class DailyTaskResourceTest {
 
+	companion object {
+		val USERNAME_1 = randomName()
+		val PASSWORD_1 = randomName()
+	}
+
     val initialized: AtomicBoolean = AtomicBoolean(false)
     @Autowired
     lateinit var mockMvc: MockMvc
@@ -44,13 +47,14 @@ class DailyTaskResourceTest {
     @Before
     fun setUp() {
         if (!initialized.get()) {
-            initUser()
+            initUsers()
             initialized.set(true)
         }
     }
 
-    private fun initUser() {
+    private fun initUsers() {
         userRepo.save(User("administrator", "password", "ADMIN", enabled = true))
+		userRepo.save(User(USERNAME_1, PASSWORD_1, "USER", true))
     }
 
     @Test
@@ -85,4 +89,30 @@ class DailyTaskResourceTest {
         assertEquals("New daily task did not have expected name", name, tasksAfter.first().name)
         assertNotEquals("New task did not have correct id", -1, tasksAfter.first().id)
     }
+
+	@Test
+	fun shouldRetrieveDatelineItems() {
+		// add one task
+		val name = "test_task"
+		val taskDTO = DailyTaskDTO(name)
+		mockMvc.perform(post("/rest/task/daily")
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.content(parser.toJson(taskDTO)))
+				.andExpect(status().isOk)
+
+		var dailyData: DailyDTO? = null
+		mockMvc.perform(get("/rest/task/daily")
+				.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(PASSWORD_1)))
+				.andExpect(status().isOk)
+				.andDo { dailyData = parser.fromJson(it.response.contentAsString) }
+
+		val data = dailyData!!
+		val dataLineItems: List<DatelineItemDTO> = data.dateLineItems
+		assertEquals(
+				"Incorrect number of datelineItems was retrieved",
+				DailyTaskResource.DATE_LINE_ITEMS_SIZE,
+				dataLineItems.size)
+
+
+	}
 }

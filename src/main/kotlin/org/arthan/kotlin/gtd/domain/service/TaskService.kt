@@ -5,6 +5,7 @@ import org.arthan.kotlin.gtd.domain.repository.DailyTaskRepository
 import org.arthan.kotlin.gtd.domain.repository.UserRepository
 import org.arthan.kotlin.gtd.web.rest.dto.DateDTO
 import org.arthan.kotlin.gtd.web.rest.dto.DailyTaskDTO
+import org.arthan.kotlin.gtd.web.rest.dto.DatelineItemDTO
 import org.arthan.kotlin.gtd.web.rest.dto.toDTO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -33,15 +34,25 @@ class TaskService @Autowired constructor(
         dailyTaskRepository.save(taskToSave)
     }
 
-    fun getDateLineDates(): List<DateDTO> {
-        val currentDate: LocalDate = dateService.getCurrentDate()
-        var startDate = currentDate.minusDays(10)
-        val dates = mutableListOf<DateDTO>()
-        for (i in 1..21) {
-            dates.add(startDate.toDTO())
-            startDate = startDate.plusDays(1)
-        }
+    fun getDateLineDates(listSize: Int): List<DatelineItemDTO> {
+		val dates = createDates(listSize)
 
-        return dates
+		val dateLineItems = dates.map {
+			DatelineItemDTO(it, emptyList(), false)
+		}
+
+        return dateLineItems
     }
+
+	private fun createDates(
+			listSize: Int): List<DateDTO> {
+		val currentDate: LocalDate = dateService.getCurrentDate()
+		var startDate = currentDate.minusDays(listSize.toLong() - 1)
+		val dates = mutableListOf<DateDTO>()
+		for (i in 1..listSize) {
+			dates.add(startDate.toDTO())
+			startDate = startDate.plusDays(1)
+		}
+		return dates
+	}
 }
