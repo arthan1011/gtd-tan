@@ -1,5 +1,6 @@
 package org.arthan.kotlin.gtd.domain.model
 
+import java.util.*
 import javax.persistence.*
 
 /**
@@ -24,5 +25,8 @@ data class DailyTask(
         @Column(name = "userid")
         var userId: Long? = null,
 
-        var name: String? = null
+        var name: String? = null,
+
+		@Column(name = "start_date")
+		var startDate: Date? = null
 )
