@@ -39,9 +39,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 class DailyTaskResourceTest {
 
 	companion object {
-		val USERNAME_1: String = randomName()
-		val PASSWORD_1: String = randomName()
-        val initialized: AtomicBoolean = AtomicBoolean(false)
+		private val USERNAME_1: String = randomName()
+		private val PASSWORD_1: String = randomName()
+        private val initialized: AtomicBoolean = AtomicBoolean(false)
 	}
 
     @Autowired
@@ -181,6 +181,10 @@ class DailyTaskResourceTest {
 				"first task for 2 days before yesterday should be in incomplete state",
 				dataLineItems[dataLineItems.lastIndex-3].tasks[0].completed)
 	}
+
+	// TODO: Проверить что возвращаетсся bad request, если при создании таска или при запросе тасков не пришло смещение по времени от клиента
+
+	// TODO: Проверить что при изменении смещении времени в запросе меняется текущая дата в ответе.
 
 	private fun retrieveDateLineItems(): List<DatelineItemDTO> {
 		val mvcResult = mockMvc.perform(get("/rest/task/daily")

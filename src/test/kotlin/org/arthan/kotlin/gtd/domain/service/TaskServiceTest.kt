@@ -1,62 +1,71 @@
 package org.arthan.kotlin.gtd.domain.service
 
-import org.arthan.kotlin.gtd.web.rest.dto.DateDTO
-import org.junit.Assert.*
+import org.arthan.kotlin.gtd.GtdTanApplication
+import org.arthan.kotlin.gtd.domain.model.User
+import org.arthan.kotlin.gtd.domain.repository.DailyTaskRepository
+import org.arthan.kotlin.gtd.domain.repository.UserRepository
+import org.arthan.kotlin.gtd.web.rest.randomName
+import org.junit.Assert
+import org.junit.Before
 import org.junit.Test
-import java.time.LocalDate
-import java.time.ZoneId
-import java.util.*
+import org.junit.runner.RunWith
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.junit4.SpringRunner
+import java.time.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Created by shamsiev on 22.08.2017 for gtd-tan.
+ * Integration Test for TaskService
+ * Created by shamsiev on 24.08.2017 for gtd-tan.
  */
+
+@RunWith(SpringRunner::class)
+@SpringBootTest(classes = arrayOf(GtdTanApplication::class))
 class TaskServiceTest {
 
-	val zoneId: ZoneId = ZoneId.systemDefault()
+	companion object {
+		private val USERNAME_1: String = randomName()
+		private val PASSWORD_1: String = randomName()
+		private val initialized: AtomicBoolean = AtomicBoolean(false)
+	}
+
+	@Autowired
+	lateinit var userRepo: UserRepository
+	@Autowired
+	lateinit var dateService: DateService
+	@Autowired
+	lateinit var taskRepo: DailyTaskRepository
+
+	@Before
+	fun setUp() {
+		if (!initialized.get()) {
+			initUsers()
+			initialized.set(true)
+		}
+	}
+
+	private fun initUsers() {
+		userRepo.save(User(USERNAME_1, PASSWORD_1, "USER", true))
+	}
+
+	@Autowired
+	lateinit var taskService: TaskService
 
 	@Test
-	fun shouldReturnIncompleteStateForToday() {
-		val completeState = isCompleted(true, Date(), DateDTO())
-		assertNull("Should be in incomplete state", completeState)
+	fun shouldCreateTaskWithStartDateBasedOnTimeOffset() {
+		val year = 2017
+		val month = 8
+		val day = 24
+		dateService.setTimeInstant(utcInstant(year, month, day, 6))
+		val offset = 0
+		val dailyTaskId = taskService.createDailyTask("first_test_task", USERNAME_1, offset)
+		val dailyTask = taskRepo.findOne(dailyTaskId)
+		val taskStartDate: LocalDate = dailyTask.startDate!!
+		Assert.assertEquals("Should save correct date", LocalDate.of(year, month, day), taskStartDate)
 	}
 
-	@Test
-	fun shouldBeInFailedStateForYesterday() {
-		val daysOffset: Long = 2
-		val startLocal = dateWithOffset(daysOffset)
-		val startDate = Date.from(startLocal.atStartOfDay(zoneId).toInstant())
-		val completed = isCompleted(false, startDate, dateDTOWithOffset(1))
-		assertNotNull("Should be in failed state", completed)
-		assertFalse("Should be in failed state", completed!!)
+	private fun utcInstant(year: Int, month: Int, day: Int, hour: Int): Instant {
+		return ZonedDateTime.of(year, month, day, hour, 0, 0, 0, ZoneOffset.UTC).toInstant()
 	}
-
-	@Test
-	fun shouldBeInFailedStateInTaskCreationDate() {
-		val daysOffset: Long = 2
-		val startLocal = dateWithOffset(daysOffset)
-		val startDate = Date.from(startLocal.atStartOfDay(zoneId).toInstant())
-		val completed = isCompleted(false, startDate, dateDTOWithOffset(daysOffset))
-		assertNotNull("Should be in failed state", completed)
-		assertFalse("Should be in failed state", completed!!)
-	}
-
-	@Test
-	fun shouldBeInIncompleteStateBeforeCreationDate() {
-		val daysOffset: Long = 2
-		val startLocal = dateWithOffset(daysOffset)
-		val startDate = Date.from(startLocal.atStartOfDay(zoneId).toInstant())
-		val completed = isCompleted(false, startDate, dateDTOWithOffset(3))
-		assertNull("Should be in incomplete state", completed)
-	}
-
-	private fun dateDTOWithOffset(offset: Long): DateDTO {
-		val local = dateWithOffset(offset)
-		return DateDTO(
-				day = local.dayOfMonth.toString(),
-				month = local.monthValue.toString(),
-				year = local.year.toString()
-		)
-	}
-
-	private fun dateWithOffset(daysOffset: Long) = LocalDate.now().minusDays(daysOffset)
 }

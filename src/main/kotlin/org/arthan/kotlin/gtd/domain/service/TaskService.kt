@@ -3,15 +3,13 @@ package org.arthan.kotlin.gtd.domain.service
 import org.arthan.kotlin.gtd.domain.model.DailyTask
 import org.arthan.kotlin.gtd.domain.repository.DailyTaskRepository
 import org.arthan.kotlin.gtd.domain.repository.UserRepository
-import org.arthan.kotlin.gtd.web.rest.dto.DateDTO
 import org.arthan.kotlin.gtd.web.rest.dto.DailyTaskDTO
+import org.arthan.kotlin.gtd.web.rest.dto.DateDTO
 import org.arthan.kotlin.gtd.web.rest.dto.DatelineItemDTO
 import org.arthan.kotlin.gtd.web.rest.dto.toDTO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDate
-import java.time.ZoneId
-import java.util.*
 
 /**
  * Business logic for tasks
@@ -30,9 +28,9 @@ class TaskService @Autowired constructor(
         return tasks
     }
 
-    fun createDailyTask(newTask: DailyTaskDTO, username: String): Long {
+    fun createDailyTask(newTaskName: String, username: String, offset: Int): Long {
         val userId = userRepository.findByUsername(username).id
-        val taskToSave = DailyTask(name = newTask.name, userId = userId, startDate = dateService.getDate())
+        val taskToSave = DailyTask(name = newTaskName, userId = userId, startDate = dateService.getDay(offset))
         return dailyTaskRepository.save(taskToSave).id ?: throw ServiceException("daily task save error")
     }
 
@@ -74,14 +72,12 @@ class TaskService @Autowired constructor(
 	}
 }
 
-internal fun isCompleted(isToday: Boolean, startDate: Date, dateDTO: DateDTO): Boolean? {
+internal fun isCompleted(isToday: Boolean, startDate: LocalDate, dateDTO: DateDTO): Boolean? {
 	if (isToday) {
 		return null
 	}
 	val localDate = LocalDate.of(dateDTO.year.toInt(), dateDTO.month.toInt(), dateDTO.day.toInt())
-	val instant = localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
-	val start = startDate.toInstant()
-	if (instant == start || instant.isAfter(start)) {
+	if (localDate == startDate || localDate.isAfter(startDate)) {
 		return false
 	}
 	return null
