@@ -201,8 +201,10 @@ class DailyTaskResourceTest {
 				.andExpect(status().isOk)
 	}
 
-
-	// TODO: Проверить что возвращаетсся bad request, если при создании таска или при запросе тасков не пришло смещение по времени от клиента
+	@Test
+	fun shouldChangeTodayDateDependingOnClientTimeOffset() {
+		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+	}
 
 	// TODO: Проверить что при изменении смещении времени в запросе меняется текущая дата в ответе.
 

@@ -23,9 +23,10 @@ class DailyTaskResource @Autowired constructor(
 	}
 
     @GetMapping("/daily")
-    fun getUserDailyTasks(principal: Principal): DailyDTO {
+    fun getUserDailyTasks(clientMetaData: ClientMetaData, principal: Principal): DailyDTO {
         val username = principal.name
-        val dateLineItems: List<DatelineItemDTO> = taskService.getDateLineDates(DATE_LINE_ITEMS_SIZE, username)
+        val dateLineItems: List<DatelineItemDTO> =
+				taskService.getDateLineDates(DATE_LINE_ITEMS_SIZE, username, clientMetaData.minuteOffset / 60)
         val taskList: List<DailyTask> = taskService.findByUsername(username)
         return DailyDTO(
 				tasks = taskList.map { it.toTO() },
@@ -40,7 +41,7 @@ class DailyTaskResource @Autowired constructor(
 			clientMetaData: ClientMetaData,
 			principal: Principal
 	): ResponseEntity<IdResponse> {
-        val savedTaskId = taskService.createDailyTask(newTask.name!!, principal.name, 3)
+        val savedTaskId = taskService.createDailyTask(newTask.name!!, principal.name, clientMetaData.minuteOffset / 60)
         return ResponseEntity.ok(IdResponse(savedTaskId))
     }
 }

@@ -17,18 +17,12 @@ class DateService {
         return LocalDate.now()
     }
 
-	fun getDate(): Date {
-		val zoneId = ZoneId.systemDefault()
-		val date = Date.from(getLocalDate().atStartOfDay(zoneId).toInstant())
-		return date
-	}
-
 	fun setTimeInstant(newInstant: Instant) {
 		instant = newInstant
 	}
 
-	fun getDay(offset: Int): LocalDate? {
-		val zonedDateTime = ZonedDateTime.now(ZoneOffset.ofHours(offset))
+	fun getDay(offset: Int): LocalDate {
+		val zonedDateTime = instant.atZone(ZoneOffset.ofHours(offset))
 		return zonedDateTime.toLocalDate()
 	}
 }

@@ -34,8 +34,8 @@ class TaskService @Autowired constructor(
         return dailyTaskRepository.save(taskToSave).id ?: throw ServiceException("daily task save error")
     }
 
-    fun getDateLineDates(listSize: Int, username: String): List<DatelineItemDTO> {
-		val dates = createDates(listSize)
+    fun getDateLineDates(listSize: Int, username: String, offset: Int): List<DatelineItemDTO> {
+		val dates = createDates(listSize, offset)
 		val tasks = findByUsername(username)
 		val dateLineItems = dates.map { dateDTO ->
 			val isToday = isToday(dateDTO)
@@ -59,9 +59,8 @@ class TaskService @Autowired constructor(
 				now.dayOfMonth == dateDTO.day.toInt()
 	}
 
-	private fun createDates(
-			listSize: Int): List<DateDTO> {
-		val currentDate = dateService.getLocalDate()
+	private fun createDates(listSize: Int, offset: Int): List<DateDTO> {
+		val currentDate = dateService.getDay(offset)
 		var startDate = currentDate.minusDays(listSize.toLong() - 1)
 		val dates = mutableListOf<DateDTO>()
 		for (i in 1..listSize) {

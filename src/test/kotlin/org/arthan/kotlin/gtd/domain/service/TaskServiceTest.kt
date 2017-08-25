@@ -5,6 +5,7 @@ import org.arthan.kotlin.gtd.domain.model.User
 import org.arthan.kotlin.gtd.domain.repository.DailyTaskRepository
 import org.arthan.kotlin.gtd.domain.repository.UserRepository
 import org.arthan.kotlin.gtd.web.rest.randomName
+import org.arthan.kotlin.gtd.web.rest.utcInstant
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -64,8 +65,5 @@ class TaskServiceTest {
 		val taskStartDate: LocalDate = dailyTask.startDate!!
 		Assert.assertEquals("Should save correct date", LocalDate.of(year, month, day), taskStartDate)
 	}
-
-	private fun utcInstant(year: Int, month: Int, day: Int, hour: Int): Instant {
-		return ZonedDateTime.of(year, month, day, hour, 0, 0, 0, ZoneOffset.UTC).toInstant()
-	}
 }
+
