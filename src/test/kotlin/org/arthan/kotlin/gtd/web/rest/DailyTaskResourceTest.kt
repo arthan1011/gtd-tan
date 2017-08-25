@@ -7,6 +7,7 @@ import org.arthan.kotlin.gtd.domain.service.TaskService
 import org.arthan.kotlin.gtd.web.rest.dto.DailyDTO
 import org.arthan.kotlin.gtd.web.rest.dto.DailyTaskDTO
 import org.arthan.kotlin.gtd.web.rest.dto.DatelineItemDTO
+import org.arthan.kotlin.gtd.web.rest.dto.TIME_OFFSET_HEADER
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -157,6 +158,8 @@ class DailyTaskResourceTest {
 		taskService.dateService = DateService()
 		val dataLineItems: List<DatelineItemDTO> = retrieveDateLineItems()
 
+
+
 		assertEquals("date items should have two tasks", 2, dataLineItems.first().tasks.size)
 		assertEquals("tasks should be in correct order", secondTaskId, dataLineItems.first().tasks[1].id)
 		assertTrue(
@@ -181,6 +184,23 @@ class DailyTaskResourceTest {
 				"first task for 2 days before yesterday should be in incomplete state",
 				dataLineItems[dataLineItems.lastIndex-3].tasks[0].completed)
 	}
+
+	@Test
+	fun shouldReturnReturnBadRequestIfTimeOffsetWasNotProvidedByClient() {
+		mockMvc.perform(post("/rest/task/daily")
+								.contentType(MediaType.APPLICATION_JSON_UTF8)
+								.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(PASSWORD_1))
+								.content(parser.toJson(DailyTaskDTO("Some_taskName"))))
+				.andExpect(status().isBadRequest)
+
+		mockMvc.perform(post("/rest/task/daily")
+								.contentType(MediaType.APPLICATION_JSON_UTF8)
+								.header(TIME_OFFSET_HEADER, 180)
+								.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(PASSWORD_1))
+								.content(parser.toJson(DailyTaskDTO("Some_taskName"))))
+				.andExpect(status().isOk)
+	}
+
 
 	// TODO: Проверить что возвращаетсся bad request, если при создании таска или при запросе тасков не пришло смещение по времени от клиента
 

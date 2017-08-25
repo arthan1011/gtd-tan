@@ -35,7 +35,11 @@ class DailyTaskResource @Autowired constructor(
     }
 
     @PostMapping("/daily")
-    fun createNewDailyTask(@RequestBody newTask: DailyTaskDTO, principal: Principal): ResponseEntity<IdResponse> {
+    fun createNewDailyTask(
+			@RequestBody newTask: DailyTaskDTO,
+			clientMetaData: ClientMetaData,
+			principal: Principal
+	): ResponseEntity<IdResponse> {
         val savedTaskId = taskService.createDailyTask(newTask.name!!, principal.name, 3)
         return ResponseEntity.ok(IdResponse(savedTaskId))
     }
