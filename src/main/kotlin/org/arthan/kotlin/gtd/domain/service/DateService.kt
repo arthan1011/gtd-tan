@@ -3,6 +3,7 @@ package org.arthan.kotlin.gtd.domain.service
 import org.springframework.stereotype.Service
 import java.time.*
 import java.util.*
+import javax.inject.Singleton
 
 /**
  * Created by arthan on 12.08.2017. | Project gtd-tan

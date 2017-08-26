@@ -25,8 +25,8 @@ class DailyTaskResource @Autowired constructor(
     @GetMapping("/daily")
     fun getUserDailyTasks(clientMetaData: ClientMetaData, principal: Principal): DailyDTO {
         val username = principal.name
-        val dateLineItems: List<DatelineItemDTO> =
-				taskService.getDateLineDates(DATE_LINE_ITEMS_SIZE, username, clientMetaData.minuteOffset / 60)
+		val hourOffset = clientMetaData.minuteOffset / 60
+		val dateLineItems = taskService.getDateLineDates(DATE_LINE_ITEMS_SIZE, username, hourOffset)
         val taskList: List<DailyTask> = taskService.findByUsername(username)
         return DailyDTO(
 				tasks = taskList.map { it.toTO() },

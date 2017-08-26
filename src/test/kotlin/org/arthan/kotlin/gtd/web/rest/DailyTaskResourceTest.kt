@@ -12,6 +12,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mockito
 import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -24,7 +25,9 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.result.StatusResultMatchers
 import java.time.LocalDate
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -41,7 +44,9 @@ class DailyTaskResourceTest {
 
 	companion object {
 		private val USERNAME_1: String = randomName()
+		private val USERNAME_2: String = randomName()
 		private val PASSWORD_1: String = randomName()
+		private val PASSWORD_2: String = randomName()
         private val initialized: AtomicBoolean = AtomicBoolean(false)
 	}
 
@@ -63,6 +68,7 @@ class DailyTaskResourceTest {
     private fun initUsers() {
         userRepo.save(User("administrator", "password", "ADMIN", enabled = true))
 		userRepo.save(User(USERNAME_1, PASSWORD_1, "USER", true))
+		userRepo.save(User(USERNAME_2, PASSWORD_2, "USER", true))
     }
 
     @Test
@@ -71,13 +77,16 @@ class DailyTaskResourceTest {
         val taskDTO = DailyTaskDTO(name)
         val postRequest = post("/rest/task/daily")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .content(parser.toJson(taskDTO))
+				.header(TIME_OFFSET_HEADER, 180)
+				.content(parser.toJson(taskDTO))
 
         val getRequest = get("/rest/task/daily")
+				.header(TIME_OFFSET_HEADER, 180)
 
-        // retrieve initial task list size
+		// retrieve initial task list size
         var tasksSizeBefore = -1
         mockMvc.perform(getRequest)
+				.andExpect(MockMvcResultMatchers.status().isOk)
                 .andDo {
                     val string = it.response.contentAsString
                     tasksSizeBefore = jsonParser.parse(string).asJsonObject["tasks"].asJsonArray.size()
@@ -105,10 +114,11 @@ class DailyTaskResourceTest {
 
 		val nowDate = LocalDate.now()
 		val firstMvcResult = mockMvc.perform(post("/rest/task/daily")
-												.contentType(MediaType.APPLICATION_JSON_UTF8)
-												.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(
-														PASSWORD_1))
-												.content(parser.toJson(DailyTaskDTO(firstTaskName))))
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.header(TIME_OFFSET_HEADER, 180)
+				.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(
+						PASSWORD_1))
+				.content(parser.toJson(DailyTaskDTO(firstTaskName))))
 				.andExpect(status().isOk)
 				.andReturn()
 		val firstTaskId = jsonParser.parse(firstMvcResult.response.contentAsString).asJsonObject["id"].asLong
@@ -143,12 +153,13 @@ class DailyTaskResourceTest {
 		val secondTaskName = "task_task_2"
 		val dateService = DateService()
 		val spyDateService = spy(dateService)
-		doReturn(nowDate.minusDays(2)).`when`(spyDateService).getLocalDate()
+		doReturn(nowDate.minusDays(2)).`when`(spyDateService).getDay(Mockito.anyInt())
 		taskService.dateService = spyDateService
 
 		val secondMvcResult = mockMvc.perform(
 				post("/rest/task/daily")
 						.contentType(MediaType.APPLICATION_JSON_UTF8)
+						.header(TIME_OFFSET_HEADER, 180)
 						.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(PASSWORD_1))
 						.content(parser.toJson(DailyTaskDTO(secondTaskName))))
 				.andExpect(status().isOk)
@@ -189,28 +200,24 @@ class DailyTaskResourceTest {
 	fun shouldReturnReturnBadRequestIfTimeOffsetWasNotProvidedByClient() {
 		mockMvc.perform(post("/rest/task/daily")
 								.contentType(MediaType.APPLICATION_JSON_UTF8)
-								.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(PASSWORD_1))
+								.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_2).password(PASSWORD_2))
 								.content(parser.toJson(DailyTaskDTO("Some_taskName"))))
 				.andExpect(status().isBadRequest)
 
 		mockMvc.perform(post("/rest/task/daily")
 								.contentType(MediaType.APPLICATION_JSON_UTF8)
 								.header(TIME_OFFSET_HEADER, 180)
-								.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(PASSWORD_1))
+								.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_2).password(PASSWORD_2))
 								.content(parser.toJson(DailyTaskDTO("Some_taskName"))))
 				.andExpect(status().isOk)
-	}
-
-	@Test
-	fun shouldChangeTodayDateDependingOnClientTimeOffset() {
-		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 	}
 
 	// TODO: Проверить что при изменении смещении времени в запросе меняется текущая дата в ответе.
 
 	private fun retrieveDateLineItems(): List<DatelineItemDTO> {
 		val mvcResult = mockMvc.perform(get("/rest/task/daily")
-								.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(PASSWORD_1)))
+				.header(TIME_OFFSET_HEADER, 180)
+				.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(PASSWORD_1)))
 				.andExpect(status().isOk)
 				.andReturn()
 		val dailyData: DailyDTO = parser.fromJson(mvcResult.response.contentAsString)

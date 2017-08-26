@@ -66,11 +66,10 @@ class DailyTaskResourceTimeOffsetTest {
 
 	@After
 	fun tearDown() {
-		dateService.setTimeInstant(Instant.now())
+		taskService.dateService.setTimeInstant(Instant.now())
 	}
 
 	private fun initUsers() {
-        userRepo.save(User("administrator", "password", "ADMIN", enabled = true))
 		userRepo.save(User(USERNAME_1, PASSWORD_1, "USER", true))
     }
 
@@ -79,7 +78,7 @@ class DailyTaskResourceTimeOffsetTest {
 		val year = 2016
 		val month = 2
 		val day = 1
-		dateService.setTimeInstant(utcInstant(year, month, day, 2))
+		taskService.dateService.setTimeInstant(utcInstant(year, month, day, 2))
 		mockMvc.perform(post("/rest/task/daily")
 								.contentType(MediaType.APPLICATION_JSON_UTF8)
 								.header(TIME_OFFSET_HEADER, 0)
