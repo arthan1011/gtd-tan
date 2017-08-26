@@ -17,7 +17,6 @@ import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
@@ -27,7 +26,6 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
-import org.springframework.test.web.servlet.result.StatusResultMatchers
 import java.time.LocalDate
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -43,10 +41,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 class DailyTaskResourceTest {
 
 	companion object {
-		private val USERNAME_1: String = randomName()
-		private val USERNAME_2: String = randomName()
-		private val PASSWORD_1: String = randomName()
-		private val PASSWORD_2: String = randomName()
         private val initialized: AtomicBoolean = AtomicBoolean(false)
 	}
 
@@ -67,8 +61,6 @@ class DailyTaskResourceTest {
 
     private fun initUsers() {
         userRepo.save(User("administrator", "password", "ADMIN", enabled = true))
-		userRepo.save(User(USERNAME_1, PASSWORD_1, "USER", true))
-		userRepo.save(User(USERNAME_2, PASSWORD_2, "USER", true))
     }
 
     @Test
@@ -108,27 +100,18 @@ class DailyTaskResourceTest {
     }
 
 	@Test
-	fun shouldRetrieveDatelineItems() {
-		// add one task
+	fun retrievedDateLineItemsShouldHaveCorrectDates() {
+		val testUser: UserForTests = createUser()
 		val firstTaskName = "test_task_1"
-
-		val nowDate = LocalDate.now()
 		val firstMvcResult = mockMvc.perform(post("/rest/task/daily")
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
 				.header(TIME_OFFSET_HEADER, 180)
-				.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(
-						PASSWORD_1))
+				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
 				.content(parser.toJson(DailyTaskDTO(firstTaskName))))
 				.andExpect(status().isOk)
 				.andReturn()
 		val firstTaskId = jsonParser.parse(firstMvcResult.response.contentAsString).asJsonObject["id"].asLong
-		testRetrievedDateLineItemsHaveCorrectDates(firstTaskId)
-
-		testDateLineItemsStatusShouldBeFailedForTasksWithStartDateInPast(nowDate)
-	}
-
-	private fun testRetrievedDateLineItemsHaveCorrectDates(savedTaskId: Long) {
-		val dataLineItems: List<DatelineItemDTO> = retrieveDateLineItems()
+		val dataLineItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser)
 		assertEquals(
 				"Incorrect number of datelineItems was retrieved",
 				DailyTaskResource.DATE_LINE_ITEMS_SIZE,
@@ -143,33 +126,50 @@ class DailyTaskResourceTest {
 		assertEquals("last dateline item should be this day", date.dayOfMonth.toString(), lastItem.date.day)
 
 		val allItemsHaveExactlyOneTask = dataLineItems.all { it.tasks.size == 1 }
-		val allItemsHaveTaskWithSavedId = dataLineItems.all { it.tasks.first().id == savedTaskId }
+		val allItemsHaveTaskWithSavedId = dataLineItems.all { it.tasks.first().id == firstTaskId }
 
 		assertTrue("All items should have exactly one task", allItemsHaveExactlyOneTask)
 		assertTrue("All items should have task with saved id", allItemsHaveTaskWithSavedId)
 	}
 
-	private fun testDateLineItemsStatusShouldBeFailedForTasksWithStartDateInPast(nowDate: LocalDate) {
+	private fun createUser(): UserForTests {
+		val username = randomName()
+		val password = randomName()
+		val savedUser = userRepo.save(User(username, password, "USER"))
+		return UserForTests(username, password, savedUser.id)
+	}
+
+	@Test
+	fun dateLineItemsStatusShouldBeFailedForTasksWithStartDateInPast() {
+		val testUser: UserForTests = createUser()
+		val nowDate = LocalDate.now()
 		val secondTaskName = "task_task_2"
 		val dateService = DateService()
 		val spyDateService = spy(dateService)
-		doReturn(nowDate.minusDays(2)).`when`(spyDateService).getDay(Mockito.anyInt())
 		taskService.dateService = spyDateService
 
+		mockMvc.perform(
+				post("/rest/task/daily")
+						.contentType(MediaType.APPLICATION_JSON_UTF8)
+						.header(TIME_OFFSET_HEADER, 180)
+						.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
+						.content(parser.toJson(DailyTaskDTO(secondTaskName))))
+				.andExpect(status().isOk)
+
+		// set date to 2 days before
+		doReturn(nowDate.minusDays(2)).`when`(spyDateService).getDay(Mockito.anyInt())
 		val secondMvcResult = mockMvc.perform(
 				post("/rest/task/daily")
 						.contentType(MediaType.APPLICATION_JSON_UTF8)
 						.header(TIME_OFFSET_HEADER, 180)
-						.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(PASSWORD_1))
+						.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
 						.content(parser.toJson(DailyTaskDTO(secondTaskName))))
 				.andExpect(status().isOk)
 				.andReturn()
 		val secondTaskId = jsonParser.parse(secondMvcResult.response.contentAsString).asJsonObject["id"].asLong
 
 		taskService.dateService = DateService()
-		val dataLineItems: List<DatelineItemDTO> = retrieveDateLineItems()
-
-
+		val dataLineItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser)
 
 		assertEquals("date items should have two tasks", 2, dataLineItems.first().tasks.size)
 		assertEquals("tasks should be in correct order", secondTaskId, dataLineItems.first().tasks[1].id)
@@ -198,26 +198,27 @@ class DailyTaskResourceTest {
 
 	@Test
 	fun shouldReturnReturnBadRequestIfTimeOffsetWasNotProvidedByClient() {
+		val testUser: UserForTests = createUser()
 		mockMvc.perform(post("/rest/task/daily")
-								.contentType(MediaType.APPLICATION_JSON_UTF8)
-								.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_2).password(PASSWORD_2))
-								.content(parser.toJson(DailyTaskDTO("Some_taskName"))))
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
+				.content(parser.toJson(DailyTaskDTO("Some_taskName"))))
 				.andExpect(status().isBadRequest)
 
 		mockMvc.perform(post("/rest/task/daily")
-								.contentType(MediaType.APPLICATION_JSON_UTF8)
-								.header(TIME_OFFSET_HEADER, 180)
-								.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_2).password(PASSWORD_2))
-								.content(parser.toJson(DailyTaskDTO("Some_taskName"))))
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.header(TIME_OFFSET_HEADER, 180)
+				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
+				.content(parser.toJson(DailyTaskDTO("Some_taskName"))))
 				.andExpect(status().isOk)
 	}
 
 	// TODO: Проверить что при изменении смещении времени в запросе меняется текущая дата в ответе.
 
-	private fun retrieveDateLineItems(): List<DatelineItemDTO> {
+	private fun retrieveDateLineItems(testUser: UserForTests): List<DatelineItemDTO> {
 		val mvcResult = mockMvc.perform(get("/rest/task/daily")
 				.header(TIME_OFFSET_HEADER, 180)
-				.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(PASSWORD_1)))
+				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password)))
 				.andExpect(status().isOk)
 				.andReturn()
 		val dailyData: DailyDTO = parser.fromJson(mvcResult.response.contentAsString)

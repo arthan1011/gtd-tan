@@ -53,8 +53,6 @@ class DailyTaskResourceTimeOffsetTest {
     lateinit var userRepo: UserRepository
 	@Autowired
 	lateinit var taskService: TaskService
-	@Autowired
-	lateinit var dateService: DateService
 
     @Before
     fun setUp() {
