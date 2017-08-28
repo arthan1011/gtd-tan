@@ -15,7 +15,7 @@ class TaskServiceUnitTest {
 
 	@Test
 	fun shouldReturnIncompleteStateForToday() {
-		val completeState = isCompleted(true, LocalDate.now(), DateDTO(0, 0, 0))
+		val completeState = isCompleted(true, LocalDate.now(), LocalDate.now())
 		assertNull("Should be in incomplete state", completeState)
 	}
 
@@ -23,7 +23,7 @@ class TaskServiceUnitTest {
 	fun shouldBeInFailedStateForYesterday() {
 		val daysOffset: Long = 2
 		val startLocal = dateWithOffset(daysOffset)
-		val completed = isCompleted(false, startLocal, dateDTOWithOffset(1))
+		val completed = isCompleted(false, startLocal, dateWithOffset(1))
 		assertNotNull("Should be in failed state", completed)
 		assertFalse("Should be in failed state", completed!!)
 	}
@@ -32,7 +32,7 @@ class TaskServiceUnitTest {
 	fun shouldBeInFailedStateInTaskCreationDate() {
 		val daysOffset: Long = 2
 		val startLocal = dateWithOffset(daysOffset)
-		val completed = isCompleted(false, startLocal, dateDTOWithOffset(daysOffset))
+		val completed = isCompleted(false, startLocal, dateWithOffset(daysOffset))
 		assertNotNull("Should be in failed state", completed)
 		assertFalse("Should be in failed state", completed!!)
 	}
@@ -41,17 +41,8 @@ class TaskServiceUnitTest {
 	fun shouldBeInIncompleteStateBeforeCreationDate() {
 		val daysOffset: Long = 2
 		val startLocal = dateWithOffset(daysOffset)
-		val completed = isCompleted(false, startLocal, dateDTOWithOffset(3))
+		val completed = isCompleted(false, startLocal, dateWithOffset(3))
 		assertNull("Should be in incomplete state", completed)
-	}
-
-	private fun dateDTOWithOffset(offset: Long): DateDTO {
-		val local = dateWithOffset(offset)
-		return DateDTO(
-				day = local.dayOfMonth,
-				month = local.monthValue,
-				year = local.year
-		)
 	}
 
 	private fun dateWithOffset(daysOffset: Long) = LocalDate.now().minusDays(daysOffset)

@@ -35,15 +35,15 @@ class TaskService @Autowired constructor(
     }
 
     fun getDateLineDates(listSize: Int, username: String, offset: Int): List<DatelineItemDTO> {
-		val dates = createDates(listSize, offset)
+		val dates: List<LocalDate> = createDates(listSize, offset)
 		val tasks = findByUsername(username)
-		val dateLineItems = dates.map { dateDTO ->
-			val isToday = isToday(dateDTO)
+		val dateLineItems = dates.map { date ->
+			val isToday = dateService.getDay(offset) == date
 			DatelineItemDTO(
-					date = dateDTO,
+					date = date.toDTO(),
 					tasks = tasks.map { t -> DailyTaskDTO(
 							id = t.id!!,
-							completed = isCompleted(isToday, t.startDate!!, dateDTO)) },
+							completed = isCompleted(isToday, t.startDate!!, date)) },
 					today = isToday
 			)
 		}
@@ -51,31 +51,23 @@ class TaskService @Autowired constructor(
         return dateLineItems
     }
 
-	private fun isToday(dateDTO: DateDTO): Boolean {
-		val now = LocalDate.now()
-		return now.year == dateDTO.year &&
-				now.monthValue == dateDTO.month &&
-				now.dayOfMonth == dateDTO.day
-	}
-
-	private fun createDates(listSize: Int, offset: Int): List<DateDTO> {
+	private fun createDates(listSize: Int, offset: Int): List<LocalDate> {
 		val currentDate = dateService.getDay(offset)
 		var startDate = currentDate.minusDays(listSize.toLong() - 1)
-		val dates = mutableListOf<DateDTO>()
+		val dates = mutableListOf<LocalDate>()
 		for (i in 1..listSize) {
-			dates.add(startDate.toDTO())
+			dates.add(startDate)
 			startDate = startDate.plusDays(1)
 		}
 		return dates
 	}
 }
 
-internal fun isCompleted(isToday: Boolean, startDate: LocalDate, dateDTO: DateDTO): Boolean? {
+internal fun isCompleted(isToday: Boolean, startDate: LocalDate, date: LocalDate): Boolean? {
 	if (isToday) {
 		return null
 	}
-	val localDate = LocalDate.of(dateDTO.year, dateDTO.month, dateDTO.day)
-	if (localDate == startDate || localDate.isAfter(startDate)) {
+	if (date == startDate || date.isAfter(startDate)) {
 		return false
 	}
 	return null

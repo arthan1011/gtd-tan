@@ -87,20 +87,21 @@ class DailyTaskResourceTimeOffsetTest {
 		assertEquals("Should be the same year", year, firstDate.year)
 		assertEquals("Should be the same month", month, firstDate.month)
 		assertEquals("Should be the same day", day, firstDate.day)
+		assertNull("task for today should be in incomplete state", noOffsetDateItems.last().tasks.first().completed)
 
 		val offsetDateItems = retrieveDateLineItems(-180)
 		val secondDate = offsetDateItems.last().date
 		assertEquals("Should be the same year", year, secondDate.year)
 		assertEquals("Should be the last month", month - 1, secondDate.month)
 		assertEquals("Should be the last day", 31, secondDate.day)
+		assertNull("task for today should be in incomplete state", offsetDateItems.last().tasks.first().completed)
 	}
 
 	private fun retrieveDateLineItems(offsetMinutes: Int = 0): List<DatelineItemDTO> {
 		val mvcResult =
 				mockMvc.perform(get("/rest/task/daily")
-										.header(TIME_OFFSET_HEADER, offsetMinutes)
-										.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(
-												PASSWORD_1)))
+						.header(TIME_OFFSET_HEADER, offsetMinutes)
+						.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(PASSWORD_1)))
 						.andExpect(status().isOk)
 						.andReturn()
 		val dailyData: DailyDTO = parser.fromJson(mvcResult.response.contentAsString)
