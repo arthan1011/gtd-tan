@@ -4,7 +4,10 @@ import org.arthan.kotlin.gtd.domain.model.User
 import org.arthan.kotlin.gtd.domain.repository.UserRepository
 import org.arthan.kotlin.gtd.domain.service.DateService
 import org.arthan.kotlin.gtd.domain.service.TaskService
+import org.arthan.kotlin.gtd.web.rest.DailyTaskResourceTest.DateLineStateMatcher.Companion.matches
 import org.arthan.kotlin.gtd.web.rest.dto.*
+import org.hamcrest.Description
+import org.hamcrest.TypeSafeMatcher
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -107,7 +110,7 @@ class DailyTaskResourceTest {
 				.andExpect(status().isOk)
 				.andReturn()
 		val firstTaskId = jsonParser.parse(firstMvcResult.response.contentAsString).asJsonObject["id"].asLong
-		val dataLineItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser)
+		val dataLineItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser, 180)
 		assertEquals(
 				"Incorrect number of datelineItems was retrieved",
 				DailyTaskResource.DATE_LINE_ITEMS_SIZE,
@@ -165,7 +168,7 @@ class DailyTaskResourceTest {
 		val secondTaskId = jsonParser.parse(secondMvcResult.response.contentAsString).asJsonObject["id"].asLong
 
 		taskService.dateService = DateService()
-		val dataLineItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser)
+		val dataLineItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser, 180)
 
 		assertEquals("date items should have two tasks", 2, dataLineItems.first().tasks.size)
 		assertEquals("tasks should be in correct order", secondTaskId, dataLineItems.first().tasks[1].id)
@@ -209,33 +212,86 @@ class DailyTaskResourceTest {
 				.andExpect(status().isOk)
 	}
 
+	/**
+	 * Установить дату на 05.02.2014 22:00
+	 * Создать таск для нового пользователя (смещение 0 часов)
+	 * Установить дату на 06.02.2014 22:00
+	 * Запросить информацию о таске и ожидать (смещение 0 часов)
+ 	 *									 	05.02.2014 -> false
+ 	 * 										06.02.2014 -> null
+	 * Успешно завершить задачу на сегодня (смещение 0 часов)
+	 * Запросить информацию о таске и ожидать (смещение 0 часов)
+	 * 										05.02.2014 -> false
+	 * 										06.02.2014 -> true
+	 * Запросить информацию о таске и ожидать (смещение -3 часа)
+	 * 										05.02.2014 -> false
+	 * 										06.02.2014 -> true
+	 * 										07.02.2014 -> null
+	 */
 	@Test
 	fun shouldCompleteTodayTask() {
-		// Установить дату на 05.02.2014 22:00
-		// Создать таск для нового пользователя (смещение 0 часов)
-		// Установить дату на 06.02.2014 22:00
-		// Запросить информацию о таске и ожидать (смещение 0 часов)
-		/*                      05.02.2014 -> false
-								06.02.2014 -> null */
-		// Успешно завершить задачу на сегодня (смещение 0 часов)
-		// Запросить информацию о таске и ожидать (смещение 0 часов)
-		/*                      05.02.2014 -> false
-								06.02.2014 -> true */
-		// Запросить информацию о таске и ожидать (смещение -3 часа)
-		/*                      05.02.2014 -> false
-		                        06.02.2014 -> true
-								07.02.2014 -> null */
+		val testUser: UserForTests = createUser()
+		val offset = 0
+		taskService.dateService.setTimeInstant(utcInstant(2014, 2, 5, 22))
+		var taskId: Long = -1
+		mockMvc.perform(post("/rest/task/daily")
+				.header(TIME_OFFSET_HEADER, offset)
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
+				.content(parser.toJson(NewTaskDTO("Completable_user_task"))))
+				.andExpect(status().isOk)
+				.andDo { taskId = jsonParser.parse(it.response.contentAsString).asJsonObject["id"].asLong }
+
+		taskService.dateService.setTimeInstant(utcInstant(2014, 2, 6, 22))
+		val firstDayItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser, offset)
+		val firstStates = listOf(false, null)
+		assertThat("should be failed for yesterday incomplete for today", firstDayItems, matches(firstStates))
+
+		mockMvc.perform(post("/rest/task/daily/$taskId/complete")
+				.header(TIME_OFFSET_HEADER, offset)
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password)))
+				.andExpect(status().isOk)
+
+		val firstCompletedItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser, offset)
+		val afterCompleteStates = listOf(false, true)
+		assertThat("task should be complete for today", firstCompletedItems, matches(afterCompleteStates))
+
+		val secondCompletedItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser, offset)
+		val afterOffsetStates = listOf(false, true, null)
+		assertThat("task should be complete for yesterday", secondCompletedItems, matches(afterOffsetStates))
 	}
 
 	// TODO: Проверить что при изменении смещении времени в запросе меняется текущая дата в ответе.
 
-	private fun retrieveDateLineItems(testUser: UserForTests): List<DatelineItemDTO> {
+	private fun retrieveDateLineItems(testUser: UserForTests, minutesOffset: Int): List<DatelineItemDTO> {
 		val mvcResult = mockMvc.perform(get("/rest/task/daily")
-				.header(TIME_OFFSET_HEADER, 180)
+				.header(TIME_OFFSET_HEADER, minutesOffset)
 				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password)))
 				.andExpect(status().isOk)
 				.andReturn()
 		val dailyData: DailyDTO = parser.fromJson(mvcResult.response.contentAsString)
 		return dailyData.dateLineItems
+	}
+
+	internal class DateLineStateMatcher
+	private constructor(val states: List<Boolean?>): TypeSafeMatcher<List<DatelineItemDTO>>() {
+
+		companion object {
+			fun matches(list: List<Boolean?>): DateLineStateMatcher {
+				return DateLineStateMatcher(list)
+			}
+		}
+
+		override fun describeTo(description: Description) {
+			description.appendText("matches daily date items task state")
+		}
+
+		override fun matchesSafely(list: List<DatelineItemDTO>): Boolean {
+			val lastElements = list.subList(list.lastIndex - states.size, list.lastIndex)
+			val firstTasks = lastElements.reversed().map { it.tasks.first().completed }
+
+			return states.asReversed().indices.all { states[it] == firstTasks[it] }
+		}
 	}
 }
