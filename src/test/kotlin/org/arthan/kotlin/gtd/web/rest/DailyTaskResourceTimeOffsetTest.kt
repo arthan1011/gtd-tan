@@ -4,10 +4,7 @@ import org.arthan.kotlin.gtd.domain.model.User
 import org.arthan.kotlin.gtd.domain.repository.UserRepository
 import org.arthan.kotlin.gtd.domain.service.DateService
 import org.arthan.kotlin.gtd.domain.service.TaskService
-import org.arthan.kotlin.gtd.web.rest.dto.DailyDTO
-import org.arthan.kotlin.gtd.web.rest.dto.DailyTaskDTO
-import org.arthan.kotlin.gtd.web.rest.dto.DatelineItemDTO
-import org.arthan.kotlin.gtd.web.rest.dto.TIME_OFFSET_HEADER
+import org.arthan.kotlin.gtd.web.rest.dto.*
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -81,21 +78,21 @@ class DailyTaskResourceTimeOffsetTest {
 								.contentType(MediaType.APPLICATION_JSON_UTF8)
 								.header(TIME_OFFSET_HEADER, 0)
 								.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(PASSWORD_1))
-								.content(parser.toJson(DailyTaskDTO(randomName()))))
+								.content(parser.toJson(NewTaskDTO(randomName()))))
 				.andExpect(status().isOk)
 				.andReturn()
 
 		val noOffsetDateItems = retrieveDateLineItems()
 		val firstDate = noOffsetDateItems.last().date
-		assertEquals("Should be the same year", year, firstDate.year.toInt())
-		assertEquals("Should be the same month", month, firstDate.month.toInt())
-		assertEquals("Should be the same day", day, firstDate.day.toInt())
+		assertEquals("Should be the same year", year, firstDate.year)
+		assertEquals("Should be the same month", month, firstDate.month)
+		assertEquals("Should be the same day", day, firstDate.day)
 
 		val offsetDateItems = retrieveDateLineItems(-180)
 		val secondDate = offsetDateItems.last().date
-		assertEquals("Should be the same year", year, secondDate.year.toInt())
-		assertEquals("Should be the last month", month - 1, secondDate.month.toInt())
-		assertEquals("Should be the last day", 31, secondDate.day.toInt())
+		assertEquals("Should be the same year", year, secondDate.year)
+		assertEquals("Should be the last month", month - 1, secondDate.month)
+		assertEquals("Should be the last day", 31, secondDate.day)
 	}
 
 	private fun retrieveDateLineItems(offsetMinutes: Int = 0): List<DatelineItemDTO> {

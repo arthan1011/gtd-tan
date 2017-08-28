@@ -10,13 +10,13 @@ import java.time.LocalDate
  */
 
 fun DailyTask.toTO(): DailyTaskDTO {
-    return DailyTaskDTO(name ?: "", id!!)
+    return DailyTaskDTO(id!!)
 }
 
 fun LocalDate.toDTO(): DateDTO {
     return DateDTO(
-            day = dayOfMonth.toString(),
-            month = monthValue.toString(),
-            year = year.toString()
+            day = dayOfMonth,
+            month = monthValue,
+            year = year
     )
 }

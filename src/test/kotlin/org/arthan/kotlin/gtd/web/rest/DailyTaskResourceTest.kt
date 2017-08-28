@@ -4,10 +4,7 @@ import org.arthan.kotlin.gtd.domain.model.User
 import org.arthan.kotlin.gtd.domain.repository.UserRepository
 import org.arthan.kotlin.gtd.domain.service.DateService
 import org.arthan.kotlin.gtd.domain.service.TaskService
-import org.arthan.kotlin.gtd.web.rest.dto.DailyDTO
-import org.arthan.kotlin.gtd.web.rest.dto.DailyTaskDTO
-import org.arthan.kotlin.gtd.web.rest.dto.DatelineItemDTO
-import org.arthan.kotlin.gtd.web.rest.dto.TIME_OFFSET_HEADER
+import org.arthan.kotlin.gtd.web.rest.dto.*
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -66,7 +63,7 @@ class DailyTaskResourceTest {
     @Test
     fun shouldCreateAndRetrieveOneTask() {
 		val name = "test_task"
-        val taskDTO = DailyTaskDTO(name)
+        val taskDTO = NewTaskDTO(name)
         val postRequest = post("/rest/task/daily")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
 				.header(TIME_OFFSET_HEADER, 180)
@@ -95,7 +92,6 @@ class DailyTaskResourceTest {
 
         val tasksAfter = dailyData!!.tasks
         assertEquals("One new task was not added", tasksSizeBefore + 1, tasksAfter.size)
-        assertEquals("New daily task did not have expected name", name, tasksAfter.first().name)
         assertNotEquals("New task did not have correct id", -1, tasksAfter.first().id)
     }
 
@@ -107,7 +103,7 @@ class DailyTaskResourceTest {
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
 				.header(TIME_OFFSET_HEADER, 180)
 				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
-				.content(parser.toJson(DailyTaskDTO(firstTaskName))))
+				.content(parser.toJson(NewTaskDTO(firstTaskName))))
 				.andExpect(status().isOk)
 				.andReturn()
 		val firstTaskId = jsonParser.parse(firstMvcResult.response.contentAsString).asJsonObject["id"].asLong
@@ -121,9 +117,9 @@ class DailyTaskResourceTest {
 		val date = LocalDate.now()
 
 		assertTrue("last dateline item should be today", lastItem.today)
-		assertEquals("last dateline item should be this year", date.year.toString(), lastItem.date.year)
-		assertEquals("last dateline item should be this month", date.monthValue.toString(), lastItem.date.month)
-		assertEquals("last dateline item should be this day", date.dayOfMonth.toString(), lastItem.date.day)
+		assertEquals("last dateline item should be this year", date.year, lastItem.date.year)
+		assertEquals("last dateline item should be this month", date.monthValue, lastItem.date.month)
+		assertEquals("last dateline item should be this day", date.dayOfMonth, lastItem.date.day)
 
 		val allItemsHaveExactlyOneTask = dataLineItems.all { it.tasks.size == 1 }
 		val allItemsHaveTaskWithSavedId = dataLineItems.all { it.tasks.first().id == firstTaskId }
@@ -153,7 +149,7 @@ class DailyTaskResourceTest {
 						.contentType(MediaType.APPLICATION_JSON_UTF8)
 						.header(TIME_OFFSET_HEADER, 180)
 						.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
-						.content(parser.toJson(DailyTaskDTO(secondTaskName))))
+						.content(parser.toJson(NewTaskDTO(secondTaskName))))
 				.andExpect(status().isOk)
 
 		// set date to 2 days before
@@ -163,7 +159,7 @@ class DailyTaskResourceTest {
 						.contentType(MediaType.APPLICATION_JSON_UTF8)
 						.header(TIME_OFFSET_HEADER, 180)
 						.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
-						.content(parser.toJson(DailyTaskDTO(secondTaskName))))
+						.content(parser.toJson(NewTaskDTO(secondTaskName))))
 				.andExpect(status().isOk)
 				.andReturn()
 		val secondTaskId = jsonParser.parse(secondMvcResult.response.contentAsString).asJsonObject["id"].asLong
@@ -202,14 +198,14 @@ class DailyTaskResourceTest {
 		mockMvc.perform(post("/rest/task/daily")
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
 				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
-				.content(parser.toJson(DailyTaskDTO("Some_taskName"))))
+				.content(parser.toJson(NewTaskDTO("Some_taskName"))))
 				.andExpect(status().isBadRequest)
 
 		mockMvc.perform(post("/rest/task/daily")
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
 				.header(TIME_OFFSET_HEADER, 180)
 				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
-				.content(parser.toJson(DailyTaskDTO("Some_taskName"))))
+				.content(parser.toJson(NewTaskDTO("Some_taskName"))))
 				.andExpect(status().isOk)
 	}
 

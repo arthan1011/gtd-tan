@@ -15,7 +15,7 @@ class TaskServiceUnitTest {
 
 	@Test
 	fun shouldReturnIncompleteStateForToday() {
-		val completeState = isCompleted(true, LocalDate.now(), DateDTO())
+		val completeState = isCompleted(true, LocalDate.now(), DateDTO(0, 0, 0))
 		assertNull("Should be in incomplete state", completeState)
 	}
 
@@ -48,9 +48,9 @@ class TaskServiceUnitTest {
 	private fun dateDTOWithOffset(offset: Long): DateDTO {
 		val local = dateWithOffset(offset)
 		return DateDTO(
-				day = local.dayOfMonth.toString(),
-				month = local.monthValue.toString(),
-				year = local.year.toString()
+				day = local.dayOfMonth,
+				month = local.monthValue,
+				year = local.year
 		)
 	}
 

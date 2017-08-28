@@ -42,7 +42,6 @@ class TaskService @Autowired constructor(
 			DatelineItemDTO(
 					date = dateDTO,
 					tasks = tasks.map { t -> DailyTaskDTO(
-							name = null,
 							id = t.id!!,
 							completed = isCompleted(isToday, t.startDate!!, dateDTO)) },
 					today = isToday
@@ -54,9 +53,9 @@ class TaskService @Autowired constructor(
 
 	private fun isToday(dateDTO: DateDTO): Boolean {
 		val now = LocalDate.now()
-		return now.year == dateDTO.year.toInt() &&
-				now.monthValue == dateDTO.month.toInt() &&
-				now.dayOfMonth == dateDTO.day.toInt()
+		return now.year == dateDTO.year &&
+				now.monthValue == dateDTO.month &&
+				now.dayOfMonth == dateDTO.day
 	}
 
 	private fun createDates(listSize: Int, offset: Int): List<DateDTO> {
@@ -75,7 +74,7 @@ internal fun isCompleted(isToday: Boolean, startDate: LocalDate, dateDTO: DateDT
 	if (isToday) {
 		return null
 	}
-	val localDate = LocalDate.of(dateDTO.year.toInt(), dateDTO.month.toInt(), dateDTO.day.toInt())
+	val localDate = LocalDate.of(dateDTO.year, dateDTO.month, dateDTO.day)
 	if (localDate == startDate || localDate.isAfter(startDate)) {
 		return false
 	}
