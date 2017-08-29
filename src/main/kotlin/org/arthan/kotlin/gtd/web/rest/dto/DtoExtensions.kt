@@ -9,8 +9,8 @@ import java.time.LocalDate
  * Created by arthan on 23.07.2017. | Project gtd-tan
  */
 
-fun DailyTask.toTO(): DailyTaskDTO {
-    return DailyTaskDTO(id!!)
+fun DailyTask.toTO(): TaskDTO {
+    return TaskDTO(id!!, name!!)
 }
 
 fun LocalDate.toDTO(): DateDTO {
