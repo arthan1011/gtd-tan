@@ -44,4 +44,13 @@ class DailyTaskResource @Autowired constructor(
         val savedTaskId = taskService.createDailyTask(newTask.name, principal.name, clientMetaData.minuteOffset / 60)
         return ResponseEntity.ok(IdResponse(savedTaskId))
     }
+
+	@PostMapping("/daily/{id}/complete")
+	fun completeTask(
+			@PathVariable("id") taskId: Long,
+			clientMetaData: ClientMetaData
+	): ResponseEntity<String> {
+		taskService.completeTask(taskId, clientMetaData.minuteOffset / 60)
+		return ResponseEntity.ok("success")
+	}
 }

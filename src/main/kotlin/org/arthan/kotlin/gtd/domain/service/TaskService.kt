@@ -4,9 +4,9 @@ import org.arthan.kotlin.gtd.domain.model.DailyTask
 import org.arthan.kotlin.gtd.domain.model.TaskState
 import org.arthan.kotlin.gtd.domain.model.enums.TaskDateState
 import org.arthan.kotlin.gtd.domain.repository.DailyTaskRepository
+import org.arthan.kotlin.gtd.domain.repository.TaskStateRepository
 import org.arthan.kotlin.gtd.domain.repository.UserRepository
 import org.arthan.kotlin.gtd.web.rest.dto.DailyTaskDTO
-import org.arthan.kotlin.gtd.web.rest.dto.DateDTO
 import org.arthan.kotlin.gtd.web.rest.dto.DatelineItemDTO
 import org.arthan.kotlin.gtd.web.rest.dto.toDTO
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,6 +22,7 @@ import java.time.LocalDate
 @Service
 class TaskService @Autowired constructor(
         val dailyTaskRepository: DailyTaskRepository,
+        val taskStateRepository: TaskStateRepository,
         var dateService: DateService,
         val userRepository: UserRepository
 ) {
@@ -39,7 +40,7 @@ class TaskService @Autowired constructor(
     fun getDateLineDates(listSize: Int, username: String, offset: Int): List<DatelineItemDTO> {
 		val dates: List<LocalDate> = createDates(listSize, offset)
 		val tasks = findByUsername(username)
-		val taskStates = getTaskStates(dates.first(), dates.last())
+		val taskStates = getTaskStates(dates.first(), dates.last(), username)
 		val dateLineItems = dates.map { date ->
 			val isToday = dateService.getDay(offset) == date
 			DatelineItemDTO(
@@ -81,7 +82,16 @@ class TaskService @Autowired constructor(
 		return null
 	}
 
-	fun getTaskStates(from: LocalDate, to: LocalDate): List<TaskState> {
-		TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+	fun getTaskStates(from: LocalDate, to: LocalDate, username: String): List<TaskState> {
+		return taskStateRepository.findInRangeForUsername(from, to, username)
+	}
+
+	fun completeTask(taskId: Long, offset: Int) {
+		val state = TaskState(
+				taskId = taskId,
+				date = dateService.getDay(offset),
+				state = TaskDateState.COMPLETED
+		)
+		taskStateRepository.save(state)
 	}
 }

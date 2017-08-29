@@ -22,7 +22,7 @@ class ClientMetaDataResolver : HandlerMethodArgumentResolver {
 								 webRequest: NativeWebRequest?, binderFactory: WebDataBinderFactory?): Any {
 		val header: String = webRequest!!.getHeader(TIME_OFFSET_HEADER) ?:
 				throw ServletRequestBindingException("\"AX-GTD-Minute-Offset\" header was not present")
-		val offset = header.toInt()
+		val offset = -header.toInt()
 		return ClientMetaData(offset)
 	}
 }

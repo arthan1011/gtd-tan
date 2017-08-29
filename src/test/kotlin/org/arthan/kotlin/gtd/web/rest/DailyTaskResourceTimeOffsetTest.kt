@@ -89,7 +89,7 @@ class DailyTaskResourceTimeOffsetTest {
 		assertEquals("Should be the same day", day, firstDate.day)
 		assertNull("task for today should be in incomplete state", noOffsetDateItems.last().tasks.first().completed)
 
-		val offsetDateItems = retrieveDateLineItems(-180)
+		val offsetDateItems = retrieveDateLineItems(180)
 		val secondDate = offsetDateItems.last().date
 		assertEquals("Should be the same year", year, secondDate.year)
 		assertEquals("Should be the last month", month - 1, secondDate.month)

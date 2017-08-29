@@ -257,12 +257,10 @@ class DailyTaskResourceTest {
 		val afterCompleteStates = listOf(false, true)
 		assertThat("task should be complete for today", firstCompletedItems, matches(afterCompleteStates))
 
-		val secondCompletedItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser, offset)
+		val secondCompletedItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser, -180)
 		val afterOffsetStates = listOf(false, true, null)
 		assertThat("task should be complete for yesterday", secondCompletedItems, matches(afterOffsetStates))
 	}
-
-	// TODO: Проверить что при изменении смещении времени в запросе меняется текущая дата в ответе.
 
 	private fun retrieveDateLineItems(testUser: UserForTests, minutesOffset: Int): List<DatelineItemDTO> {
 		val mvcResult = mockMvc.perform(get("/rest/task/daily")
@@ -288,10 +286,11 @@ class DailyTaskResourceTest {
 		}
 
 		override fun matchesSafely(list: List<DatelineItemDTO>): Boolean {
-			val lastElements = list.subList(list.lastIndex - states.size, list.lastIndex)
-			val firstTasks = lastElements.reversed().map { it.tasks.first().completed }
+			val lastElements = list.subList(list.lastIndex - states.size + 1, list.lastIndex + 1)
+			val firstTaskStates = lastElements.reversed().map { it.tasks.first().completed }
 
-			return states.asReversed().indices.all { states[it] == firstTasks[it] }
+			val reversedStates = states.reversed()
+			return reversedStates.indices.all { reversedStates[it] == firstTaskStates[it] }
 		}
 	}
 }
