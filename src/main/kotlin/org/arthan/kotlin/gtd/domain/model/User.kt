@@ -10,6 +10,12 @@ import javax.persistence.*
 
 @Entity
 @Table(name = "users")
+@NamedQuery(
+        name = "User.usernameExists",
+        query = "select case when (count (u) > 0) then true else false end " +
+                "from User u " +
+                "where u.username = ?1"
+)
 class User(
         var username: String,
         var password: String,
