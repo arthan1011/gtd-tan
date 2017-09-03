@@ -2,8 +2,6 @@ package org.arthan.kotlin.gtd.domain.service
 
 import org.springframework.stereotype.Service
 import java.time.*
-import java.util.*
-import javax.inject.Singleton
 
 /**
  * Created by arthan on 12.08.2017. | Project gtd-tan
@@ -12,18 +10,16 @@ import javax.inject.Singleton
 @Service
 class DateService {
 
-	var instant: Instant = Instant.now()
-
-    fun getLocalDate(): LocalDate {
-        return LocalDate.now()
-    }
+	private var clock: Clock = Clock.systemUTC()
 
 	fun setTimeInstant(newInstant: Instant) {
-		instant = newInstant
+		clock = Clock.fixed(newInstant, ZoneOffset.UTC)
 	}
 
 	fun getDay(offset: Int): LocalDate {
-		val zonedDateTime = instant.atZone(ZoneOffset.ofHours(offset))
+		val zonedDateTime = takeInstant().atZone(ZoneOffset.ofHours(offset))
 		return zonedDateTime.toLocalDate()
 	}
+
+	fun takeInstant(): Instant = clock.instant()
 }
