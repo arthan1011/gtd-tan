@@ -5,6 +5,8 @@ import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
 
 /**
+ * Controller for mvc navigation
+ *
  * Created by arthan on 4/9/17 .
  */
 
