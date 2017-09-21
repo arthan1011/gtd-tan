@@ -42,11 +42,11 @@ class TaskService @Autowired constructor(
 		val tasks = findByUsername(username)
 		val taskStates = getTaskStates(dates.first(), dates.last(), username)
 		val dateLineItems = dates.map { date ->
-			val isToday = dateService.getDay(offset) == date
+			val today = dateService.getDay(offset)
 			DatelineItemDTO(
 					date = date.toDTO(),
 					tasks = tasks.map { t ->
-						val completedOnDate = isCompleted(isToday, t.startDate!!, date)
+						val completedOnDate = isCompleted(today, t.startDate!!, date)
 						val taskState = taskStates.filter { it.taskId == t.id }.find { it.date == date }
 						val hasCompletedState = taskState?.state == TaskDateState.COMPLETED
 						val completed = if (hasCompletedState) { hasCompletedState } else { completedOnDate }
@@ -54,16 +54,24 @@ class TaskService @Autowired constructor(
 							id = t.id!!,
 							completed = completed)
 					},
-					today = isToday
+					today = today == date
 			)
 		}
 
         return dateLineItems
     }
 
-	internal fun createDates(listSize: Int, offset: Int): List<LocalDate> {
-		val currentDate = dateService.getDay(offset)
-		var startDate = currentDate.minusDays(listSize.toLong() - 1)
+	/**
+	 * Returns LocalDate list size of listSize with today in the middle
+	 *
+	 * @param listSize result list size
+	 * @param timeZoneOffset hours timezone offset
+	 *
+	 */
+	internal fun createDates(listSize: Int, timeZoneOffset: Int): List<LocalDate> {
+		val currentDate = dateService.getDay(timeZoneOffset)
+		val startDateOffset = (listSize.toLong() / 2)
+		var startDate = currentDate.minusDays(startDateOffset)
 		val dates = mutableListOf<LocalDate>()
 		for (i in 1..listSize) {
 			dates.add(startDate)
@@ -72,11 +80,12 @@ class TaskService @Autowired constructor(
 		return dates
 	}
 
-	internal fun isCompleted(isToday: Boolean, startDate: LocalDate, date: LocalDate): Boolean? {
-		if (isToday) {
+	internal fun isCompleted(today: LocalDate, startDate: LocalDate, date: LocalDate): Boolean? {
+		if (date == today) {
 			return null
 		}
-		if (date == startDate || date.isAfter(startDate)) {
+		val dateIsAfterCreation: Boolean = date == startDate || date.isAfter(startDate)
+		if (dateIsAfterCreation && date.isBefore(today)) {
 			return false
 		}
 		return null

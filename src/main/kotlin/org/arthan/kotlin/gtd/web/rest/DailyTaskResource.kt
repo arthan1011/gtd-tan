@@ -19,7 +19,7 @@ class DailyTaskResource @Autowired constructor(
 ) {
 
 	companion object {
-		val DATE_LINE_ITEMS_SIZE = 15
+		val DATE_LINE_ITEMS_SIZE = 29
 	}
 
     @GetMapping("/daily")
