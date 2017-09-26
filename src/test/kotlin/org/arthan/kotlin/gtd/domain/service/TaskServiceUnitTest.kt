@@ -32,7 +32,7 @@ class TaskServiceUnitTest {
 
 	@Test
 	fun shouldReturnIncompleteStateForToday() {
-		val completeState = taskService.isCompleted(true, LocalDate.now(), LocalDate.now())
+		val completeState = taskService.isCompleted(LocalDate.now(), LocalDate.now(), LocalDate.now())
 		assertNull("Should be in incomplete state", completeState)
 	}
 
@@ -40,7 +40,7 @@ class TaskServiceUnitTest {
 	fun shouldBeInFailedStateForYesterday() {
 		val daysOffset: Long = 2
 		val startLocal = dateWithOffset(daysOffset)
-		val completed = taskService.isCompleted(false, startLocal, dateWithOffset(1))
+		val completed = taskService.isCompleted(LocalDate.now(), startLocal, dateWithOffset(1))
 		assertNotNull("Should be in failed state", completed)
 		assertFalse("Should be in failed state", completed!!)
 	}
@@ -49,7 +49,7 @@ class TaskServiceUnitTest {
 	fun shouldBeInFailedStateInTaskCreationDate() {
 		val daysOffset: Long = 2
 		val startLocal = dateWithOffset(daysOffset)
-		val completed = taskService.isCompleted(false, startLocal, dateWithOffset(daysOffset))
+		val completed = taskService.isCompleted(LocalDate.now(), startLocal, dateWithOffset(daysOffset))
 		assertNotNull("Should be in failed state", completed)
 		assertFalse("Should be in failed state", completed!!)
 	}
@@ -58,7 +58,7 @@ class TaskServiceUnitTest {
 	fun shouldBeInIncompleteStateBeforeCreationDate() {
 		val daysOffset: Long = 2
 		val startLocal = dateWithOffset(daysOffset)
-		val completed = taskService.isCompleted(false, startLocal, dateWithOffset(3))
+		val completed = taskService.isCompleted(LocalDate.now(), startLocal, dateWithOffset(3))
 		assertNull("Should be in incomplete state", completed)
 	}
 

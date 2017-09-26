@@ -7,6 +7,7 @@ import org.arthan.kotlin.gtd.domain.service.TaskService
 import org.arthan.kotlin.gtd.web.rest.DailyTaskResourceTest.DateLineStateMatcher.Companion.matches
 import org.arthan.kotlin.gtd.web.rest.dto.*
 import org.hamcrest.Description
+import org.hamcrest.Matchers
 import org.hamcrest.TypeSafeMatcher
 import org.junit.Assert.*
 import org.junit.Before
@@ -260,6 +261,46 @@ class DailyTaskResourceTest {
 		val secondCompletedItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser, -180)
 		val afterOffsetStates = listOf(false, true, null)
 		assertThat("task should be complete for yesterday", secondCompletedItems, matches(afterOffsetStates))
+	}
+
+	@Test
+	fun shouldEditTaskName() {
+		// Create new user
+		val user = createUser()
+
+		// Create new task for the user
+		val NAME_BEFORE_EDIT = "nameBeforeEdit"
+		val NAME_AFTER_EDIT = "nameAfterEdit"
+
+		var taskId: Long = -1
+		mockMvc.perform(post("/rest/task/daily")
+				.header(TIME_OFFSET_HEADER, 0)
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.with(SecurityMockMvcRequestPostProcessors.user(user.username).password(user.password))
+				.content(parser.toJson(NewTaskDTO(NAME_BEFORE_EDIT))))
+				.andExpect(status().isOk)
+				.andDo { taskId = jsonParser.parse(it.response.contentAsString).asJsonObject["id"].asLong }
+
+		mockMvc.perform(get("/rest/task/daily")
+				.header(TIME_OFFSET_HEADER, 0)
+				.with(SecurityMockMvcRequestPostProcessors.user(user.username).password(user.password)))
+				.andExpect(status().isOk)
+				.andExpect(jsonPath("tasks[0].name", Matchers.`is`(NAME_BEFORE_EDIT)))
+
+		// Edit created task name and check
+		mockMvc.perform(put("/rest/task/daily/$taskId/name")
+				.header(TIME_OFFSET_HEADER, 0)
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.with(SecurityMockMvcRequestPostProcessors.user(user.username).password(user.password))
+				.content(parser.toJson(mapOf("name" to NAME_AFTER_EDIT))))
+				.andExpect(status().isOk)
+
+		mockMvc.perform(get("/rest/task/daily")
+				.header(TIME_OFFSET_HEADER, 0)
+				.with(SecurityMockMvcRequestPostProcessors.user(user.username).password(user.password)))
+				.andExpect(status().isOk)
+				.andExpect(jsonPath("tasks[0].name", Matchers.`is`(NAME_AFTER_EDIT)))
+
 	}
 
 	private fun retrieveDateLineItems(testUser: UserForTests, minutesOffset: Int): List<DatelineItemDTO> {

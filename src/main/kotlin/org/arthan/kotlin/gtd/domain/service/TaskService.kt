@@ -103,4 +103,16 @@ class TaskService @Autowired constructor(
 		)
 		taskStateRepository.save(state)
 	}
+
+	fun editTaskName(taskId: Long, newName: String, username: String) {
+		val task = dailyTaskRepository.findOne(taskId)
+		val user = userRepository.findByUsername(username)
+
+		if (task.userId != user.id) {
+			return // TODO: throw exception that will result in response code 401
+		}
+
+		task.name = newName
+		dailyTaskRepository.save(task)
+	}
 }

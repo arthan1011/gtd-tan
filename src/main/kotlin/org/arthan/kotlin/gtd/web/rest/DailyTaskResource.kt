@@ -53,4 +53,20 @@ class DailyTaskResource @Autowired constructor(
 		taskService.completeTask(taskId, clientMetaData.minuteOffset / 60)
 		return ResponseEntity.ok("success")
 	}
+
+	@PutMapping("/daily/{id}/{field}")
+	fun editTask(
+			@PathVariable("id") taskId: Long,
+			@PathVariable("field") taskField: String,
+			@RequestBody map: Map<String, String>,
+			principal: Principal
+	): ResponseEntity<String> {
+
+		val name: String = map[taskField] ?:
+				return ResponseEntity.badRequest().body("You should specify task name")
+
+		taskService.editTaskName(taskId, name, principal.name)
+
+		return ResponseEntity.ok("success")
+	}
 }
