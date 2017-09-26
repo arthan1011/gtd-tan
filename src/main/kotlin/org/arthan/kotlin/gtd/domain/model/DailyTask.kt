@@ -16,7 +16,8 @@ import javax.persistence.*
         name = "DailyTask.findByUsername",
         query = "select dt " +
                 "from DailyTask dt, User u " +
-                "where dt.userId = u.id and u.username = ?1"
+                "where dt.userId = u.id and u.username = ?1 " +
+				"order by dt.startDate"
 )
 data class DailyTask(
         @Id
