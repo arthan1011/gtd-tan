@@ -3,7 +3,6 @@ package org.arthan.kotlin.gtd
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
-import com.opentable.db.postgres.junit.EmbeddedPostgresRules
 import org.arthan.kotlin.gtd.web.ForwardFilter
 import org.arthan.kotlin.gtd.web.rest.ClientMetaDataResolver
 import org.springframework.boot.SpringApplication

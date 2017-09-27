@@ -5,6 +5,7 @@ import org.arthan.kotlin.gtd.domain.model.User
 import org.arthan.kotlin.gtd.domain.repository.UserRepository
 import org.arthan.kotlin.gtd.web.NewUserForm
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 
 /**
@@ -18,12 +19,14 @@ class UserService {
 
     @Autowired
     lateinit var userRepository: UserRepository
+    @Autowired
+	lateinit var passwordEncoder: PasswordEncoder
 
     fun createUser(newUser: NewUserForm) {
 
         val userToCreate = User(
                 username = newUser.username,
-                password = newUser.password,
+                password = passwordEncoder.encode(newUser.password),
                 role = "USER")
         userRepository.save(userToCreate)
     }

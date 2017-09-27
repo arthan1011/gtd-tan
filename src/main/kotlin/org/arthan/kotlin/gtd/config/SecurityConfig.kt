@@ -3,14 +3,21 @@ package org.arthan.kotlin.gtd.config
 import org.arthan.kotlin.gtd.domain.service.CurrentUserDetailsService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.security.SecurityProperties
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
+import org.springframework.security.authentication.AuthenticationProvider
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
 import javax.sql.DataSource
 
 /**
+ * Security Configuration
+ *
  * Created by arthan on 4/14/17 .
  */
 
@@ -25,8 +32,9 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
     @Autowired
     lateinit var userDetailsService: CurrentUserDetailsService
 
-    override fun configure(auth: AuthenticationManagerBuilder?) {
-        auth?.userDetailsService(userDetailsService)
+    override fun configure(auth: AuthenticationManagerBuilder) {
+//        auth.userDetailsService(userDetailsService)
+        auth.authenticationProvider(authProvider())
     }
 
     override fun configure(http: HttpSecurity) {
@@ -45,5 +53,18 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
                     ?.logoutUrl("/logout")
                     ?.logoutSuccessUrl("/ui")
                 ?.invalidateHttpSession(true)
+    }
+
+    @Bean
+    fun authProvider(): AuthenticationProvider {
+        val provider = DaoAuthenticationProvider()
+        provider.setUserDetailsService(userDetailsService)
+        provider.setPasswordEncoder(passwordEncoder())
+        return provider
+    }
+
+    @Bean
+    fun passwordEncoder(): PasswordEncoder {
+        return BCryptPasswordEncoder()
     }
 }
