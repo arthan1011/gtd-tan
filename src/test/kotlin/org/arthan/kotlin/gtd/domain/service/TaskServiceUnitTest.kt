@@ -26,7 +26,7 @@ class TaskServiceUnitTest {
 		taskService = Mockito.spy(TaskService(
 				Mockito.mock(DailyTaskRepository::class.java),
 				Mockito.mock(TaskStateRepository::class.java),
-				Mockito.mock(DateService::class.java),
+				DateService(),
 				Mockito.mock(UserRepository::class.java)))
 	}
 
@@ -65,8 +65,8 @@ class TaskServiceUnitTest {
 	@Test
 	fun shouldReturnStateForCompletedTasks() {
 		Mockito.doReturn(listOf(
-				DailyTask(34, 1, "first", LocalDate.of(2015, 6, 7)),
-				DailyTask(35, 1, "second", LocalDate.of(2015, 6, 7))
+				DailyTask(id = 34, userId = 1, name = "first", startDate = LocalDate.of(2015, 6, 7)),
+				DailyTask(id = 35, userId = 1, name = "second", startDate = LocalDate.of(2015, 6, 7))
 		)).`when`(taskService).findByUsername(Mockito.anyString())
 
 		val firstDay = LocalDate.of(2015, 6, 8)

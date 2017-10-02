@@ -43,6 +43,7 @@ class DailyTaskResourceTest {
 
 	companion object {
         private val initialized: AtomicBoolean = AtomicBoolean(false)
+		private val FUTURE_DATES_NUMBER = 14
 	}
 
     @Autowired
@@ -117,13 +118,12 @@ class DailyTaskResourceTest {
 				DailyTaskResource.DATE_LINE_ITEMS_SIZE,
 				dataLineItems.size)
 
-		val lastItem = dataLineItems.last()
+		val todayDateItem: DatelineItemDTO = dataLineItems.find { it.today }!!
 		val date = LocalDate.now()
 
-		assertTrue("last dateline item should be today", lastItem.today)
-		assertEquals("last dateline item should be this year", date.year, lastItem.date.year)
-		assertEquals("last dateline item should be this month", date.monthValue, lastItem.date.month)
-		assertEquals("last dateline item should be this day", date.dayOfMonth, lastItem.date.day)
+		assertEquals("last dateline item should be this year", date.year, todayDateItem.date.year)
+		assertEquals("last dateline item should be this month", date.monthValue, todayDateItem.date.month)
+		assertEquals("last dateline item should be this day", date.dayOfMonth, todayDateItem.date.day)
 
 		val allItemsHaveExactlyOneTask = dataLineItems.all { it.tasks.size == 1 }
 		val allItemsHaveTaskWithSavedId = dataLineItems.all { it.tasks.first().id == firstTaskId }
@@ -143,6 +143,7 @@ class DailyTaskResourceTest {
 	fun dateLineItemsStatusShouldBeFailedForTasksWithStartDateInPast() {
 		val testUser: UserForTests = createUser()
 		val nowDate = LocalDate.now()
+		val firstTaskName = "task_task_1"
 		val secondTaskName = "task_task_2"
 		val dateService = DateService()
 		val spyDateService = spy(dateService)
@@ -153,7 +154,7 @@ class DailyTaskResourceTest {
 						.contentType(MediaType.APPLICATION_JSON_UTF8)
 						.header(TIME_OFFSET_HEADER, 180)
 						.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
-						.content(parser.toJson(NewTaskDTO(secondTaskName))))
+						.content(parser.toJson(NewTaskDTO(firstTaskName))))
 				.andExpect(status().isOk)
 
 		// set date to 2 days before
@@ -172,28 +173,28 @@ class DailyTaskResourceTest {
 		val dataLineItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser, 180)
 
 		assertEquals("date items should have two tasks", 2, dataLineItems.first().tasks.size)
-		assertEquals("tasks should be in correct order", secondTaskId, dataLineItems.first().tasks[1].id)
+		assertEquals("tasks should be in correct order", secondTaskId, dataLineItems.first().tasks[0].id)
 		assertTrue(
 				"tasks for today should be in incomplete state",
 				dataLineItems.last().tasks.all { it.completed == null })
 		assertFalse(
 				"second task for yesterday should be in failed state",
-				dataLineItems[dataLineItems.lastIndex-1].tasks[1].completed!!)
+				dataLineItems[dataLineItems.lastIndex - 1 - FUTURE_DATES_NUMBER].tasks[0].completed!!)
 		assertNull(
 				"first task for yesterday should be in incomplete state",
-				dataLineItems[dataLineItems.lastIndex-1].tasks[0].completed)
+				dataLineItems[dataLineItems.lastIndex - 1 - FUTURE_DATES_NUMBER].tasks[1].completed)
 		assertFalse(
 				"second task for day before yesterday should be in failed state",
-				dataLineItems[dataLineItems.lastIndex-2].tasks[1].completed!!)
+				dataLineItems[dataLineItems.lastIndex - 2 - FUTURE_DATES_NUMBER].tasks[0].completed!!)
 		assertNull(
 				"first task for day before yesterday should be in incomplete state",
-				dataLineItems[dataLineItems.lastIndex-2].tasks[0].completed)
+				dataLineItems[dataLineItems.lastIndex - 2 - FUTURE_DATES_NUMBER].tasks[1].completed)
 		assertNull(
 				"second task for 2 days before yesterday should be in incomplete state",
-				dataLineItems[dataLineItems.lastIndex-3].tasks[1].completed)
+				dataLineItems[dataLineItems.lastIndex - 3 - FUTURE_DATES_NUMBER].tasks[0].completed)
 		assertNull(
 				"first task for 2 days before yesterday should be in incomplete state",
-				dataLineItems[dataLineItems.lastIndex-3].tasks[0].completed)
+				dataLineItems[dataLineItems.lastIndex - 3 - FUTURE_DATES_NUMBER].tasks[1].completed)
 	}
 
 	@Test
@@ -245,7 +246,7 @@ class DailyTaskResourceTest {
 
 		taskService.dateService.setTimeInstant(utcInstant(2014, 2, 6, 22))
 		val firstDayItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser, offset)
-		val firstStates = listOf(false, null)
+		val firstStates = listOf(false, null).plus(nullList(FUTURE_DATES_NUMBER))
 		assertThat("should be failed for yesterday incomplete for today", firstDayItems, matches(firstStates))
 
 		mockMvc.perform(post("/rest/task/daily/$taskId/complete")
@@ -255,12 +256,20 @@ class DailyTaskResourceTest {
 				.andExpect(status().isOk)
 
 		val firstCompletedItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser, offset)
-		val afterCompleteStates = listOf(false, true)
+		val afterCompleteStates = listOf<Boolean?>(false, true).plus(nullList(FUTURE_DATES_NUMBER))
 		assertThat("task should be complete for today", firstCompletedItems, matches(afterCompleteStates))
 
 		val secondCompletedItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser, -180)
-		val afterOffsetStates = listOf(false, true, null)
+		val afterOffsetStates = listOf(false, true, null).plus(nullList(FUTURE_DATES_NUMBER))
 		assertThat("task should be complete for yesterday", secondCompletedItems, matches(afterOffsetStates))
+	}
+
+	private fun nullList(number: Int): List<Boolean?> {
+		val resultList = mutableListOf<Boolean?>()
+		for (i in 1..number) {
+			resultList.add(null)
+		}
+		return resultList
 	}
 
 	@Test
