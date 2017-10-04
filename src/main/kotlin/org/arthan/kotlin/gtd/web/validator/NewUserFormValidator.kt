@@ -33,11 +33,21 @@ open class NewUserFormValidator
 		if (userService.userExists(username)) {
 			errors.rejectValue("username", "valid.error.usernameExists", "Username '$username' already exists!")
 		}
+		if (!isCorrectCredentials(username)) {
+			errors.rejectValue("username", "valid.error.incorrectSymbols", "Username '$username' contains unallowed symbols!")
+		}
 	}
 
 	private fun validatePassword(form: NewUserForm, errors: Errors) {
 		if (form.password != form.repeatedPassword) {
 			errors.rejectValue("repeatedPassword", "valid.error.repeatedPassword", "You should repeat password!")
 		}
+		if (!isCorrectCredentials(form.password)) {
+			errors.rejectValue("repeatedPassword", "valid.error.incorrectSymbols", "Password contains unallowed symbols!")
+		}
+	}
+
+	fun isCorrectCredentials(credential: String): Boolean {
+		return "\\w+".toRegex().matches(credential)
 	}
 }
