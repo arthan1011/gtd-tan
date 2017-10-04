@@ -249,9 +249,10 @@ class DailyTaskResourceTest {
 		val firstStates = listOf(false, null).plus(nullList(FUTURE_DATES_NUMBER))
 		assertThat("should be failed for yesterday incomplete for today", firstDayItems, matches(firstStates))
 
-		mockMvc.perform(post("/rest/task/daily/$taskId/complete")
+		mockMvc.perform(put("/rest/task/daily/$taskId/state")
 				.header(TIME_OFFSET_HEADER, offset)
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.content("done")
 				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password)))
 				.andExpect(status().isOk)
 
@@ -310,6 +311,40 @@ class DailyTaskResourceTest {
 				.andExpect(status().isOk)
 				.andExpect(jsonPath("tasks[0].name", Matchers.`is`(NAME_AFTER_EDIT)))
 
+	}
+
+	@Test
+	fun shouldChangeDailyTaskItemState() {
+		// Create new user
+		val user = createUser()
+
+		// Create new task for the user
+		val FAILING_TASK_NAME = "nameBeforeEdit"
+
+		var taskId: Long = -1
+		mockMvc.perform(post("/rest/task/daily")
+				.header(TIME_OFFSET_HEADER, 0)
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.with(SecurityMockMvcRequestPostProcessors.user(user.username).password(user.password))
+				.content(parser.toJson(NewTaskDTO(FAILING_TASK_NAME))))
+				.andExpect(status().isOk)
+				.andDo { taskId = jsonParser.parse(it.response.contentAsString).asJsonObject["id"].asLong }
+
+		val dateLineItemsBefore = retrieveDateLineItems(user, 0)
+		val todayStateBefore = dateLineItemsBefore.find { it.today }!!
+		assertNull("today state for just created task should be null", todayStateBefore.tasks.first().completed)
+
+		// change today task state to failed
+		mockMvc.perform(put("/rest/task/daily/$taskId/state")
+				.header(TIME_OFFSET_HEADER, 0)
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.with(SecurityMockMvcRequestPostProcessors.user(user.username).password(user.password))
+				.content("failed"))
+				.andExpect(status().isOk)
+
+		val dateLineItemsAfter = retrieveDateLineItems(user, 0)
+		val todayStateAfter = dateLineItemsAfter.find { it.today }!!
+		assertFalse("today state should be failed", todayStateAfter.tasks.first().completed!!)
 	}
 
 	private fun retrieveDateLineItems(testUser: UserForTests, minutesOffset: Int): List<DatelineItemDTO> {

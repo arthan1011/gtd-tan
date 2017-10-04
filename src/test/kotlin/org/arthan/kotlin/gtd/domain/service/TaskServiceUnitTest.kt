@@ -97,5 +97,16 @@ class TaskServiceUnitTest {
 		assertTrue("task 35 should be completed for second day", dateLineDates[1].tasks[1].completed!!)
 	}
 
+	@Test
+	fun shouldDetermineTaskDateItemState() {
+		assertNull("State should be null if no data", taskService.findDateItemState(null))
+		assertFalse("State should be false for incomplete task date item", taskService.findDateItemState(TaskState(
+				state = TaskDateState.FAILED
+		))!!)
+		assertTrue("State should be true for complete task date item", taskService.findDateItemState(TaskState(
+				state = TaskDateState.COMPLETED
+		))!!)
+	}
+
 	private fun dateWithOffset(daysOffset: Long) = LocalDate.now().minusDays(daysOffset)
 }

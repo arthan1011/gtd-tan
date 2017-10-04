@@ -46,10 +46,9 @@ class TaskService @Autowired constructor(
 			DatelineItemDTO(
 					date = date.toDTO(),
 					tasks = tasks.map { t ->
-						val completedOnDate = isCompleted(today, t.startDate!!, date)
+						val dateBasedState = isCompleted(today, t.startDate!!, date)
 						val taskState = taskStates.filter { it.taskId == t.id }.find { it.date == date }
-						val hasCompletedState = taskState?.state == TaskDateState.COMPLETED
-						val completed = if (hasCompletedState) { hasCompletedState } else { completedOnDate }
+						val completed = findDateItemState(taskState) ?: dateBasedState
 						DailyTaskDTO(
 							id = t.id!!,
 							completed = completed)
@@ -60,6 +59,18 @@ class TaskService @Autowired constructor(
 
         return dateLineItems
     }
+
+	internal fun findDateItemState(taskState: TaskState?): Boolean? {
+		if (taskState == null) {
+			return null
+		}
+
+		return when (taskState.state) {
+			TaskDateState.COMPLETED -> true
+			TaskDateState.FAILED -> false
+			null -> throw IllegalStateException("Task state should not be null")
+		}
+	}
 
 	/**
 	 * Returns LocalDate list size of listSize with today in the middle
@@ -104,6 +115,7 @@ class TaskService @Autowired constructor(
 		taskStateRepository.save(state)
 	}
 
+	// TODO: move validation for user rights on task to repository (v0.1.4)
 	fun editTaskName(taskId: Long, newName: String, username: String) {
 		val task = dailyTaskRepository.findOne(taskId)
 		val user = userRepository.findByUsername(username)
@@ -114,5 +126,21 @@ class TaskService @Autowired constructor(
 
 		task.name = newName
 		dailyTaskRepository.save(task)
+	}
+
+	fun changeTaskState(taskId: Long, newState: Boolean, username: String, offset: Int) {
+		val task = dailyTaskRepository.findOne(taskId)
+		val user = userRepository.findByUsername(username)
+
+		if (task.userId != user.id) {
+			return // TODO: throw exception that will result in response code 401
+		}
+
+		val state = if (newState) {
+			TaskState(taskId = taskId, date = dateService.getDay(offset), state = TaskDateState.COMPLETED)
+		} else {
+			TaskState(taskId = taskId, date = dateService.getDay(offset), state = TaskDateState.FAILED)
+		}
+		taskStateRepository.save(state)
 	}
 }
