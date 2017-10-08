@@ -41,7 +41,13 @@ class DailyTaskResource @Autowired constructor(
 			clientMetaData: ClientMetaData,
 			principal: Principal
 	): ResponseEntity<IdResponse> {
-        val savedTaskId = taskService.createDailyTask(newTask.name, principal.name, clientMetaData.minuteOffset / 60)
+
+        val savedTaskId = taskService.createDailyTask(
+				newTaskName = newTask.name,
+				newTaskType = newTask.type,
+				username = principal.name,
+				offset = clientMetaData.minuteOffset / 60
+		)
         return ResponseEntity.ok(IdResponse(savedTaskId))
     }
 

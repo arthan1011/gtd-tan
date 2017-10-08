@@ -62,7 +62,11 @@ class TaskServiceTest {
 		val day = 24
 		dateService.setTimeInstant(utcInstant(year, month, day, 6))
 		val offset = 0
-		val dailyTaskId = taskService.createDailyTask("first_test_task", USERNAME_1, offset)
+		val dailyTaskId = taskService.createDailyTask(newTaskName = "first_test_task",
+													  newTaskType = "instant",
+													  username = USERNAME_1,
+													  offset = offset
+		)
 		val dailyTask = taskRepo.findOne(dailyTaskId)
 		val taskStartDate: LocalDate = dailyTask.startDate!!
 		Assert.assertEquals("Should save correct date", LocalDate.of(year, month, day), taskStartDate)

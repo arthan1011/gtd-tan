@@ -1,5 +1,6 @@
 package org.arthan.kotlin.gtd.domain.model
 
+import org.arthan.kotlin.gtd.domain.model.enums.TaskType
 import java.time.LocalDate
 import java.util.*
 import javax.persistence.*
@@ -30,5 +31,8 @@ data class DailyTask(
         var name: String? = null,
 
 		@Column(name = "start_date")
-		var startDate: LocalDate? = null
+		var startDate: LocalDate? = null,
+
+		@Enumerated(EnumType.STRING)
+		var type: TaskType? = null
 )

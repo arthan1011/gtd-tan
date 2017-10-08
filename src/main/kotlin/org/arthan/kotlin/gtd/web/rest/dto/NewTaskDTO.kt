@@ -6,4 +6,4 @@ package org.arthan.kotlin.gtd.web.rest.dto
  * Created by arthan on 22.07.2017. | Project gtd-tan
  */
 
-data class NewTaskDTO(val name: String)
+data class NewTaskDTO(val name: String, val type: String = "instant")

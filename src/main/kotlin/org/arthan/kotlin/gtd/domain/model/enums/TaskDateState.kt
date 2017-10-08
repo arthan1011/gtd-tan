@@ -7,5 +7,4 @@ package org.arthan.kotlin.gtd.domain.model.enums
 enum class TaskDateState {
 	COMPLETED,
 	FAILED
-
 }

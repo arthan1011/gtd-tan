@@ -3,9 +3,11 @@ package org.arthan.kotlin.gtd.domain.service
 import org.arthan.kotlin.gtd.domain.model.DailyTask
 import org.arthan.kotlin.gtd.domain.model.TaskState
 import org.arthan.kotlin.gtd.domain.model.enums.TaskDateState
+import org.arthan.kotlin.gtd.domain.model.enums.TaskType
 import org.arthan.kotlin.gtd.domain.repository.DailyTaskRepository
 import org.arthan.kotlin.gtd.domain.repository.TaskStateRepository
 import org.arthan.kotlin.gtd.domain.repository.UserRepository
+import org.arthan.kotlin.gtd.domain.service.exception.ServiceException
 import org.arthan.kotlin.gtd.web.rest.dto.DailyTaskDTO
 import org.arthan.kotlin.gtd.web.rest.dto.DatelineItemDTO
 import org.arthan.kotlin.gtd.web.rest.dto.toDTO
@@ -31,9 +33,22 @@ class TaskService @Autowired constructor(
         return tasks
     }
 
-    fun createDailyTask(newTaskName: String, username: String, offset: Int): Long {
+    fun createDailyTask(newTaskName: String, newTaskType: String, username: String, offset: Int): Long {
         val userId = userRepository.findByUsername(username).id
-        val taskToSave = DailyTask(name = newTaskName, userId = userId, startDate = dateService.getDay(offset))
+
+		val taskType: TaskType
+		try {
+			taskType = TaskType.valueOf(newTaskType.toUpperCase())
+		} catch(e: IllegalArgumentException) {
+			throw ServiceException("incorrect task type '$newTaskType'")
+		}
+
+		val taskToSave = DailyTask(
+				name = newTaskName,
+				userId = userId,
+				startDate = dateService.getDay(offset),
+				type = taskType
+		)
         return dailyTaskRepository.save(taskToSave).id ?: throw ServiceException("daily task save error")
     }
 

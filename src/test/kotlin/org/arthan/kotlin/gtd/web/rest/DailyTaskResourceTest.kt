@@ -265,14 +265,6 @@ class DailyTaskResourceTest {
 		assertThat("task should be complete for yesterday", secondCompletedItems, matches(afterOffsetStates))
 	}
 
-	private fun nullList(number: Int): List<Boolean?> {
-		val resultList = mutableListOf<Boolean?>()
-		for (i in 1..number) {
-			resultList.add(null)
-		}
-		return resultList
-	}
-
 	@Test
 	fun shouldEditTaskName() {
 		// Create new user
@@ -347,14 +339,50 @@ class DailyTaskResourceTest {
 		assertFalse("today state should be failed", todayStateAfter.tasks.first().completed!!)
 	}
 
+	@Test
+	fun shouldCreatePomodoroTypeTask() {
+		val user = createUser()
+
+		val POMODORO_TASK_NAME = "tomato_task"
+		val INSTANT_TASK_NAME = "instant_task"
+
+		// create two types of tasks
+		val newPomodoroTask = NewTaskDTO(name = POMODORO_TASK_NAME, type = "pomodoro")
+		mockMvc.perform(post("/rest/task/daily")
+				.header(TIME_OFFSET_HEADER, 0)
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.with(SecurityMockMvcRequestPostProcessors.user(user.username).password(user.password))
+				.content(parser.toJson(newPomodoroTask)))
+				.andExpect(status().isOk)
+		val newInstantTask = NewTaskDTO(name = INSTANT_TASK_NAME, type = "instant")
+		mockMvc.perform(post("/rest/task/daily")
+				.header(TIME_OFFSET_HEADER, 0)
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.with(SecurityMockMvcRequestPostProcessors.user(user.username).password(user.password))
+				.content(parser.toJson(newInstantTask)))
+				.andExpect(status().isOk)
+
+		// retrieve and check tasks
+		val dailyInfo = retrieveDailyInfo(user, 0)
+		val pomodoroTask = dailyInfo.tasks.find { it.name == POMODORO_TASK_NAME }!!
+		val instantTask = dailyInfo.tasks.find { it.name == INSTANT_TASK_NAME }!!
+		assertEquals("Pomodoro task should have 'pomodoro' type", "POMODORO", pomodoroTask.type)
+		assertEquals("Instant task should have 'instant' type", "INSTANT", instantTask.type)
+	}
+
 	private fun retrieveDateLineItems(testUser: UserForTests, minutesOffset: Int): List<DatelineItemDTO> {
+		val dailyData: DailyDTO = retrieveDailyInfo(testUser, minutesOffset)
+		return dailyData.dateLineItems
+	}
+
+	private fun retrieveDailyInfo(testUser: UserForTests, minutesOffset: Int): DailyDTO {
 		val mvcResult = mockMvc.perform(get("/rest/task/daily")
 				.header(TIME_OFFSET_HEADER, minutesOffset)
 				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password)))
 				.andExpect(status().isOk)
 				.andReturn()
 		val dailyData: DailyDTO = parser.fromJson(mvcResult.response.contentAsString)
-		return dailyData.dateLineItems
+		return dailyData
 	}
 
 	internal class DateLineStateMatcher

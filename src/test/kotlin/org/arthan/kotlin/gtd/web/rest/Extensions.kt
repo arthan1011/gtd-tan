@@ -29,3 +29,11 @@ data class UserForTests(
 		val username: String = randomName(),
 		val password: String = randomName(),
 		val userId: Long)
+
+internal fun nullList(number: Int): List<Boolean?> {
+	val resultList = mutableListOf<Boolean?>()
+	for (i in 1..number) {
+		resultList.add(null)
+	}
+	return resultList
+}
