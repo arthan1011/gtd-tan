@@ -11,6 +11,7 @@ import org.arthan.kotlin.gtd.domain.service.exception.ServiceException
 import org.arthan.kotlin.gtd.web.rest.dto.DailyTaskDTO
 import org.arthan.kotlin.gtd.web.rest.dto.DatelineItemDTO
 import org.arthan.kotlin.gtd.web.rest.dto.toDTO
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -28,6 +29,11 @@ class TaskService @Autowired constructor(
         var dateService: DateService,
         val userRepository: UserRepository
 ) {
+
+	companion object {
+		private val logger = LoggerFactory.getLogger("USER_TASKS")
+	}
+
     fun findByUsername(username: String): List<DailyTask> {
         val tasks = dailyTaskRepository.findByUsername(username)
         return tasks
@@ -49,7 +55,9 @@ class TaskService @Autowired constructor(
 				startDate = dateService.getDay(offset),
 				type = taskType
 		)
-        return dailyTaskRepository.save(taskToSave).id ?: throw ServiceException("daily task save error")
+		val taskId = dailyTaskRepository.save(taskToSave).id ?: throw ServiceException("daily task save error")
+		logger.debug("Task #$taskId with name \"$newTaskName\" for user \"$username\" was created")
+		return taskId
     }
 
     fun getDateLineDates(listSize: Int, username: String, offset: Int): List<DatelineItemDTO> {
@@ -139,8 +147,10 @@ class TaskService @Autowired constructor(
 			return // TODO: throw exception that will result in response code 401
 		}
 
+		val oldName = task.name
 		task.name = newName
 		dailyTaskRepository.save(task)
+		logger.debug("Name for task #${task.id} was changed from \"$oldName\" to \"$newName\"")
 	}
 
 	fun changeTaskState(taskId: Long, newState: Boolean, username: String, offset: Int) {
@@ -157,5 +167,7 @@ class TaskService @Autowired constructor(
 			TaskState(taskId = taskId, date = dateService.getDay(offset), state = TaskDateState.FAILED)
 		}
 		taskStateRepository.save(state)
+
+		logger.debug("Task state for task #${task.id} \"${task.name}\" was changed to \"$newState\"")
 	}
 }
