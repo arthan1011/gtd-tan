@@ -370,6 +370,39 @@ class DailyTaskResourceTest {
 		assertEquals("Instant task should have 'instant' type", "INSTANT", instantTask.type)
 	}
 
+	@Test
+	fun shouldNotBeAbleToChangeOtherUsersState() {
+		val INSTANT_TASK_NAME = "inst_task_name"
+
+		// create two users and task for first user
+		val firstUser = createUser()
+		val secondUser = createUser()
+		val newInstantTask = NewTaskDTO(name = INSTANT_TASK_NAME, type = "instant")
+		mockMvc.perform(post("/rest/task/daily")
+								.header(TIME_OFFSET_HEADER, 0)
+								.contentType(MediaType.APPLICATION_JSON_UTF8)
+								.with(SecurityMockMvcRequestPostProcessors.user(firstUser.username).password(firstUser.password))
+								.content(parser.toJson(newInstantTask)))
+				.andExpect(status().isOk)
+		val dateLineItemsBefore = retrieveDateLineItems(firstUser, 0)
+		val taskId = dateLineItemsBefore.first().tasks.first().id
+
+		// change task state using second user credentials
+		mockMvc.perform(put("/rest/task/daily/$taskId/state")
+								.header(TIME_OFFSET_HEADER, 0)
+								.contentType(MediaType.APPLICATION_JSON_UTF8)
+								.with(SecurityMockMvcRequestPostProcessors.user(secondUser.username).password(secondUser.password))
+								.content("failed"))
+				.andExpect(status().isForbidden)
+
+
+		// check task state was not modified and sever response is 'no allowed'
+		val dateLineItemsAfter = retrieveDateLineItems(firstUser, 0)
+		val isCompleted: Boolean? = dateLineItemsAfter.find { it.today }!!.tasks.first().completed
+
+		assertNull("Task state should not change", isCompleted)
+	}
+
 	private fun retrieveDateLineItems(testUser: UserForTests, minutesOffset: Int): List<DatelineItemDTO> {
 		val dailyData: DailyDTO = retrieveDailyInfo(testUser, minutesOffset)
 		return dailyData.dateLineItems

@@ -7,6 +7,7 @@ import org.arthan.kotlin.gtd.domain.model.enums.TaskType
 import org.arthan.kotlin.gtd.domain.repository.DailyTaskRepository
 import org.arthan.kotlin.gtd.domain.repository.TaskStateRepository
 import org.arthan.kotlin.gtd.domain.repository.UserRepository
+import org.arthan.kotlin.gtd.domain.service.exception.ForbiddenException
 import org.arthan.kotlin.gtd.domain.service.exception.ServiceException
 import org.arthan.kotlin.gtd.web.rest.dto.DailyTaskDTO
 import org.arthan.kotlin.gtd.web.rest.dto.DatelineItemDTO
@@ -129,22 +130,12 @@ class TaskService @Autowired constructor(
 		return taskStateRepository.findInRangeForUsername(from, to, username)
 	}
 
-	fun completeTask(taskId: Long, offset: Int) {
-		val state = TaskState(
-				taskId = taskId,
-				date = dateService.getDay(offset),
-				state = TaskDateState.COMPLETED
-		)
-		taskStateRepository.save(state)
-	}
-
-	// TODO: move validation for user rights on task to repository (v0.1.4)
 	fun editTaskName(taskId: Long, newName: String, username: String) {
 		val task = dailyTaskRepository.findOne(taskId)
 		val user = userRepository.findByUsername(username)
 
 		if (task.userId != user.id) {
-			return // TODO: throw exception that will result in response code 401
+			throw ForbiddenException()
 		}
 
 		val oldName = task.name
@@ -158,7 +149,7 @@ class TaskService @Autowired constructor(
 		val user = userRepository.findByUsername(username)
 
 		if (task.userId != user.id) {
-			return // TODO: throw exception that will result in response code 401
+			throw ForbiddenException()
 		}
 
 		val state = if (newState) {
