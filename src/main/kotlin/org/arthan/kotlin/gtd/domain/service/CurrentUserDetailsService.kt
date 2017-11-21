@@ -20,7 +20,7 @@ class CurrentUserDetailsService : UserDetailsService {
 
     override fun loadUserByUsername(username: String?): UserDetails {
         val user = userRepository.findByUsername(username!!)
-        return CurrentUser(user)
+        return CurrentUser(user!!)
     }
 }
 

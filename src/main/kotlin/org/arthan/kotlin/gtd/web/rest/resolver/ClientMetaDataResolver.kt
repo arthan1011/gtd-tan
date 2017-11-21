@@ -1,7 +1,5 @@
-package org.arthan.kotlin.gtd.web.rest
+package org.arthan.kotlin.gtd.web.rest.resolver
 
-import org.arthan.kotlin.gtd.web.rest.dto.ClientMetaData
-import org.arthan.kotlin.gtd.web.rest.dto.TIME_OFFSET_HEADER
 import org.springframework.core.MethodParameter
 import org.springframework.web.bind.ServletRequestBindingException
 import org.springframework.web.bind.support.WebDataBinderFactory
@@ -18,9 +16,9 @@ class ClientMetaDataResolver : HandlerMethodArgumentResolver {
 		return parameter!!.parameterType == ClientMetaData::class.java
 	}
 
-	override fun resolveArgument(parameter: MethodParameter?, mavContainer: ModelAndViewContainer?,
-								 webRequest: NativeWebRequest?, binderFactory: WebDataBinderFactory?): Any {
-		val header: String = webRequest!!.getHeader(TIME_OFFSET_HEADER) ?:
+	override fun resolveArgument(parameter: MethodParameter?, mav: ModelAndViewContainer?,
+	                             req: NativeWebRequest?, binderFactory: WebDataBinderFactory?): Any {
+		val header: String = req!!.getHeader(TIME_OFFSET_HEADER) ?:
 				throw ServletRequestBindingException("\"AX-GTD-Minute-Offset\" header was not present")
 		val offset = -header.toInt()
 		return ClientMetaData(offset)

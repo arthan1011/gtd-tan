@@ -3,6 +3,8 @@ package org.arthan.kotlin.gtd.web.rest
 import org.arthan.kotlin.gtd.domain.model.DailyTask
 import org.arthan.kotlin.gtd.domain.service.TaskService
 import org.arthan.kotlin.gtd.web.rest.dto.*
+import org.arthan.kotlin.gtd.web.rest.resolver.ClientMetaData
+import org.arthan.kotlin.gtd.web.rest.resolver.Credentials
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -23,11 +25,11 @@ class DailyTaskResource @Autowired constructor(
 	}
 
     @GetMapping("/daily")
-    fun getUserDailyTasks(clientMetaData: ClientMetaData, principal: Principal): DailyDTO {
-        val username = principal.name
+    fun getUserDailyTasks(clientMetaData: ClientMetaData, credentials: Credentials): DailyDTO {
+        val userId = credentials.userId
 		val hourOffset = clientMetaData.minuteOffset / 60
-		val dateLineItems = taskService.getDateLineDates(DATE_LINE_ITEMS_SIZE, username, hourOffset)
-        val taskList: List<DailyTask> = taskService.findByUsername(username)
+		val dateLineItems = taskService.getDateLineDates(DATE_LINE_ITEMS_SIZE, userId, hourOffset)
+        val taskList: List<DailyTask> = taskService.findByUserId(userId)
         return DailyDTO(
 				tasks = taskList.map { it.toTO() },
 				dateLineItems = dateLineItems

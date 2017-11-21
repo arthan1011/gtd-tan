@@ -79,7 +79,7 @@ class TaskServiceUnitTest {
 		Mockito.doReturn(listOf(
 				TaskState(id = 1, taskId = 34, date = firstDay, state = TaskDateState.COMPLETED),
 				TaskState(id = 2, taskId = 35, date = secondDay, state = TaskDateState.COMPLETED)
-		)).`when`(taskService).getTaskStates(from = firstDay, to = secondDay, username = "test_user")
+		)).`when`(taskService).getTaskStates(from = firstDay, to = secondDay, userId = "test_user")
 
 		val dateLineDates = taskService.getDateLineDates(0, "test_user", 0)
 

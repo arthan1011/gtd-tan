@@ -10,4 +10,5 @@ import org.springframework.data.repository.CrudRepository
  */
 interface DailyTaskRepository : CrudRepository<DailyTask, Long> {
     fun findByUsername(username: String): List<DailyTask>
+    fun findByUserId(userId: Long): List<DailyTask>
 }

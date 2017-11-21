@@ -41,7 +41,7 @@ class TaskService @Autowired constructor(
     }
 
     fun createDailyTask(newTaskName: String, newTaskType: String, username: String, offset: Int): Long {
-        val userId = userRepository.findByUsername(username).id
+        val userId = userRepository.findByUsername(username)!!.id
 
 		val taskType: TaskType
 		try {
@@ -61,10 +61,10 @@ class TaskService @Autowired constructor(
 		return taskId
     }
 
-    fun getDateLineDates(listSize: Int, username: String, offset: Int): List<DatelineItemDTO> {
+    fun getDateLineDates(listSize: Int, userId: Long, offset: Int): List<DatelineItemDTO> {
 		val dates: List<LocalDate> = createDates(listSize, offset)
-		val tasks = findByUsername(username)
-		val taskStates = getTaskStates(dates.first(), dates.last(), username)
+		val tasks = findByUserId(userId)
+		val taskStates = getTaskStates(dates.first(), dates.last(), userId)
 		val dateLineItems = dates.map { date ->
 			val today = dateService.getDay(offset)
 			DatelineItemDTO(
@@ -126,15 +126,15 @@ class TaskService @Autowired constructor(
 		return null
 	}
 
-	fun getTaskStates(from: LocalDate, to: LocalDate, username: String): List<TaskState> {
-		return taskStateRepository.findInRangeForUsername(from, to, username)
+	fun getTaskStates(from: LocalDate, to: LocalDate, userId: Long): List<TaskState> {
+		return taskStateRepository.findInRangeForUsername(from, to, userId)
 	}
 
 	fun editTaskName(taskId: Long, newName: String, username: String) {
 		val task = dailyTaskRepository.findOne(taskId)
 		val user = userRepository.findByUsername(username)
 
-		if (task.userId != user.id) {
+		if (task.userId != user?.id) {
 			throw ForbiddenException()
 		}
 
@@ -148,7 +148,7 @@ class TaskService @Autowired constructor(
 		val task = dailyTaskRepository.findOne(taskId)
 		val user = userRepository.findByUsername(username)
 
-		if (task.userId != user.id) {
+		if (task.userId != user?.id) {
 			throw ForbiddenException()
 		}
 
@@ -160,5 +160,9 @@ class TaskService @Autowired constructor(
 		taskStateRepository.save(state)
 
 		logger.debug("Task state for task #${task.id} \"${task.name}\" was changed to \"$newState\"")
+	}
+
+	fun findByUserId(userId: Long): List<DailyTask> {
+		return dailyTaskRepository.findByUserId(userId)
 	}
 }

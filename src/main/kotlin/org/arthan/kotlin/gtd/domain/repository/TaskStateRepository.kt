@@ -10,5 +10,5 @@ import java.time.LocalDate
  * Created by shamsiev on 29.08.2017 for gtd-tan.
  */
 interface TaskStateRepository : CrudRepository<TaskState, Long> {
-	fun findInRangeForUsername(from: LocalDate, to: LocalDate, username: String): List<TaskState>
+	fun findInRangeForUsername(from: LocalDate, to: LocalDate, userId: Long): List<TaskState>
 }

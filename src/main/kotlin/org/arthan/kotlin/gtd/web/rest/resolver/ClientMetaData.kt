@@ -1,4 +1,4 @@
-package org.arthan.kotlin.gtd.web.rest.dto
+package org.arthan.kotlin.gtd.web.rest.resolver
 
 /**
  * for extra info in client requests

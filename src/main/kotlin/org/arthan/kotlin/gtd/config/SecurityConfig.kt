@@ -40,9 +40,8 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
     override fun configure(http: HttpSecurity) {
         http.csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/registration")?.permitAll() // sign up page
-                ?.anyRequest()?.authenticated()
-                ?.and()
+                ?.anyRequest()?.permitAll()
+                /*?.and()
                 ?.formLogin()
                     ?.loginPage("/login")
                     ?.usernameParameter("username")
@@ -52,7 +51,7 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
                 ?.logout()
                     ?.logoutUrl("/logout")
                     ?.logoutSuccessUrl("/ui")
-                ?.invalidateHttpSession(true)
+                ?.invalidateHttpSession(true)*/
     }
 
     @Bean

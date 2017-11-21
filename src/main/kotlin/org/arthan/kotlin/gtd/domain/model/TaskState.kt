@@ -21,7 +21,7 @@ import javax.persistence.*
 				"ts.taskId in (" +
 				"select td.id " +
 				"from DailyTask td, User u " +
-				"where td.userId = u.id and u.username = ?3)"
+				"where td.userId = ?3)"
 )
 data class TaskState(
 		@Id

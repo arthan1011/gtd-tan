@@ -35,4 +35,10 @@ class UserService {
         return userRepository.usernameExists(username)
     }
 
+    fun checkCredentials(username: String, password: String): Long? {
+        val savedUser: User = userRepository.findByUsername(username) ?: return null
+        val correctUser = passwordEncoder.matches(password, savedUser.password)
+        return if (correctUser) { savedUser.id } else { null }
+    }
+
 }

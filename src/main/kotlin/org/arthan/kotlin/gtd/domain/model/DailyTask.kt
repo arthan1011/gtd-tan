@@ -13,12 +13,21 @@ import javax.persistence.*
 
 @Entity
 @Table(name = "daily_task")
-@NamedQuery(
-        name = "DailyTask.findByUsername",
-        query = "select dt " +
-                "from DailyTask dt, User u " +
-                "where dt.userId = u.id and u.username = ?1 " +
-				"order by dt.startDate"
+@NamedQueries(
+        NamedQuery(
+                name = "DailyTask.findByUsername",
+                query = "select dt " +
+                        "from DailyTask dt, User u " +
+                        "where dt.userId = u.id and u.username = ?1 " +
+                        "order by dt.id"
+        ),
+        NamedQuery(
+                name = "DailyTask.findByUserId",
+                query = "select dt " +
+                        "from DailyTask dt " +
+                        "where dt.userId = ?1 " +
+                        "order by dt.id"
+        )
 )
 data class DailyTask(
         @Id

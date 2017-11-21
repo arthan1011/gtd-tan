@@ -4,7 +4,8 @@ import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import org.arthan.kotlin.gtd.web.ForwardFilter
-import org.arthan.kotlin.gtd.web.rest.ClientMetaDataResolver
+import org.arthan.kotlin.gtd.web.rest.resolver.ClientMetaDataResolver
+import org.arthan.kotlin.gtd.web.rest.resolver.CredentialsResolver
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.web.servlet.FilterRegistrationBean
@@ -19,15 +20,15 @@ import javax.sql.DataSource
 @SpringBootApplication
 class GtdTanApplication : WebMvcConfigurationSupport() {
 
-	override fun addArgumentResolvers(argumentResolvers: MutableList<HandlerMethodArgumentResolver>?) {
-		argumentResolvers!!.add(ClientMetaDataResolver())
+	override fun addArgumentResolvers(argumentResolvers: MutableList<HandlerMethodArgumentResolver>) {
+		argumentResolvers.add(ClientMetaDataResolver())
+		argumentResolvers.add(CredentialsResolver())
 	}
 
 	companion object {
         @JvmStatic
         fun main(args: Array<String>) {
             SpringApplication.run(GtdTanApplication::class.java, *args)
-
         }
     }
 
