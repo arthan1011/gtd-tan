@@ -40,9 +40,7 @@ class TaskService @Autowired constructor(
         return tasks
     }
 
-    fun createDailyTask(newTaskName: String, newTaskType: String, username: String, offset: Int): Long {
-        val userId = userRepository.findByUsername(username)!!.id
-
+    fun createDailyTask(newTaskName: String, newTaskType: String, userId: Long, offset: Int): Long {
 		val taskType: TaskType
 		try {
 			taskType = TaskType.valueOf(newTaskType.toUpperCase())
@@ -57,7 +55,7 @@ class TaskService @Autowired constructor(
 				type = taskType
 		)
 		val taskId = dailyTaskRepository.save(taskToSave).id ?: throw ServiceException("daily task save error")
-		logger.debug("Task #$taskId with name \"$newTaskName\" for user \"$username\" was created")
+		logger.debug("Task #$taskId with name \"$newTaskName\" for user #$userId was created")
 		return taskId
     }
 
@@ -130,11 +128,10 @@ class TaskService @Autowired constructor(
 		return taskStateRepository.findInRangeForUsername(from, to, userId)
 	}
 
-	fun editTaskName(taskId: Long, newName: String, username: String) {
+	fun editTaskName(taskId: Long, newName: String, userId: Long) {
 		val task = dailyTaskRepository.findOne(taskId)
-		val user = userRepository.findByUsername(username)
 
-		if (task.userId != user?.id) {
+		if (task.userId != userId) {
 			throw ForbiddenException()
 		}
 
@@ -144,11 +141,10 @@ class TaskService @Autowired constructor(
 		logger.debug("Name for task #${task.id} was changed from \"$oldName\" to \"$newName\"")
 	}
 
-	fun changeTaskState(taskId: Long, newState: Boolean, username: String, offset: Int) {
+	fun changeTaskState(taskId: Long, newState: Boolean, userId: Long, offset: Int) {
 		val task = dailyTaskRepository.findOne(taskId)
-		val user = userRepository.findByUsername(username)
 
-		if (task.userId != user?.id) {
+		if (task.userId != userId) {
 			throw ForbiddenException()
 		}
 

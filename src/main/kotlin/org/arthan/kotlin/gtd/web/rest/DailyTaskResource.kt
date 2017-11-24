@@ -41,13 +41,13 @@ class DailyTaskResource @Autowired constructor(
     fun createNewDailyTask(
 			@RequestBody newTask: NewTaskDTO,
 			clientMetaData: ClientMetaData,
-			principal: Principal
+			credentials: Credentials
 	): ResponseEntity<IdResponse> {
 
         val savedTaskId = taskService.createDailyTask(
 				newTaskName = newTask.name,
 				newTaskType = newTask.type,
-				username = principal.name,
+				userId = credentials.userId,
 				offset = clientMetaData.minuteOffset / 60
 		)
         return ResponseEntity.ok(IdResponse(savedTaskId))
@@ -56,18 +56,18 @@ class DailyTaskResource @Autowired constructor(
 	@PutMapping("/daily/{id}/state")
 	fun changeTaskDateItemState(
 			@PathVariable("id") taskId: Long,
-			@RequestBody newState: String,
+			@RequestBody newState: ValueDTO,
 			clientMetaData: ClientMetaData,
-			principal: Principal
+			credentials: Credentials
 	): ResponseEntity<String> {
 
-		val booleanState: Boolean = when (newState) {
+		val booleanState: Boolean = when (newState.value) {
 			"failed" -> false
 			"done" -> true
 			else -> return ResponseEntity.badRequest().body("incorrect state for task '$newState'")
 		}
 
-		taskService.changeTaskState(taskId, booleanState, principal.name, clientMetaData.minuteOffset / 60)
+		taskService.changeTaskState(taskId, booleanState, credentials.userId, clientMetaData.minuteOffset / 60)
 
 		return ResponseEntity.ok("success")
 	}
@@ -76,13 +76,13 @@ class DailyTaskResource @Autowired constructor(
 	fun editTask(
 			@PathVariable("id") taskId: Long,
 			@RequestBody map: Map<String, String>,
-			principal: Principal
+			credentials: Credentials
 	): ResponseEntity<String> {
 
 		val name: String = map["name"] ?:
 				return ResponseEntity.badRequest().body("You should specify task name")
 
-		taskService.editTaskName(taskId, name, principal.name)
+		taskService.editTaskName(taskId, name, credentials.userId)
 
 		return ResponseEntity.ok("success")
 	}
