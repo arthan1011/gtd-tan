@@ -5,6 +5,7 @@ import org.arthan.kotlin.gtd.domain.service.UserService
 import org.arthan.kotlin.gtd.web.validator.NewUserFormValidator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Controller
 import org.springframework.validation.BindingResult
@@ -12,9 +13,7 @@ import org.springframework.validation.Errors
 import org.springframework.validation.ObjectError
 import org.springframework.validation.Validator
 import org.springframework.web.bind.WebDataBinder
-import org.springframework.web.bind.annotation.InitBinder
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.*
 import javax.validation.Valid
 import javax.validation.constraints.Size
 
@@ -24,40 +23,50 @@ import javax.validation.constraints.Size
  * Created by arthan on 4/14/17 .
  */
 
-@Controller
+@RestController
 class LoginController {
 
     @Autowired
     lateinit var userService: UserService
-    @Autowired
-    lateinit var newUserFormValidator: NewUserFormValidator
 
-    @InitBinder
-    fun initBinder(binder: WebDataBinder) {
-        binder.addValidators(newUserFormValidator)
-    }
+    @PostMapping(value = "/registration")
+    fun register(@RequestBody newUser: NewUserForm): ResponseEntity<UserValidationReply> {
 
-    @PostMapping(
-            value = "/registration",
-            consumes = arrayOf(MediaType.APPLICATION_FORM_URLENCODED_VALUE))
-    fun register(@Valid newUser: NewUserForm, bindingResult: BindingResult): String {
-
-        if (bindingResult.hasErrors()) return "registration"
+        val validationResult: UserValidationReply = validateNewUser(newUser)
+        if (!validationResult.success) {
+            return ResponseEntity.ok(validationResult)
+        }
 
         userService.createUser(newUser)
-        return "redirect:/login"
+        return ResponseEntity.ok(UserValidationReply(success = true, message = "You create a new user"))
+    }
+
+    private fun validateNewUser(newUser: NewUserForm): UserValidationReply {
+        val userExists = userService.userExists(newUser.username)
+        return if (userExists) {
+            UserValidationReply(
+                    success = false,
+                    usernameMessage = "User with name '${newUser.username}' already exists")
+        } else {
+            UserValidationReply(success = true)
+        }
     }
 }
 
-@Component
 class NewUserForm(
-        @field:Size(min = 3, max = 30) var username: String,
-        var password: String,
-        var repeatedPassword: String
+        var username: String = "",
+        var password: String = "",
+        var repeatedPassword: String = ""
 ) {
-    constructor():this("", "", "")
-
     override fun toString(): String {
         return "NewUserForm(username='$username', password='$password', repeatedPassword='$repeatedPassword')"
     }
 }
+
+class UserValidationReply(
+        var success: Boolean = false,
+        var usernameMessage: String? = null,
+        var passwordMessage: String? = null,
+        var repeatedPasswordMessage: String? = null,
+        var message: String? = null
+)
