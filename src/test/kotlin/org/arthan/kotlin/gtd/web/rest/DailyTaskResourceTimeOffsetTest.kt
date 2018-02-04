@@ -38,6 +38,7 @@ class DailyTaskResourceTimeOffsetTest {
 	companion object {
 		private val USERNAME_1: String = randomName()
 		private val PASSWORD_1: String = randomName()
+		private var USER_ID_1: Long = -1;
         private val initialized: AtomicBoolean = AtomicBoolean(false)
 	}
 
@@ -62,7 +63,7 @@ class DailyTaskResourceTimeOffsetTest {
 	}
 
 	private fun initUsers() {
-		userRepo.save(User(USERNAME_1, PASSWORD_1, "USER", true))
+		USER_ID_1 = userRepo.save(User(USERNAME_1, PASSWORD_1, "USER", true)).id
     }
 
 	@Test
@@ -72,10 +73,11 @@ class DailyTaskResourceTimeOffsetTest {
 		val day = 1
 		taskService.dateService.setTimeInstant(utcInstant(year, month, day, 2))
 		mockMvc.perform(post("/rest/task/daily")
-								.contentType(MediaType.APPLICATION_JSON_UTF8)
-								.header(TIME_OFFSET_HEADER, 0)
-								.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(PASSWORD_1))
-								.content(parser.toJson(NewTaskDTO(randomName()))))
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.header("AX-GTD-User-ID", USER_ID_1)
+				.header(TIME_OFFSET_HEADER, 0)
+				.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(PASSWORD_1))
+				.content(parser.toJson(NewTaskDTO(randomName()))))
 				.andExpect(status().isOk)
 				.andReturn()
 
@@ -98,6 +100,7 @@ class DailyTaskResourceTimeOffsetTest {
 		val mvcResult =
 				mockMvc.perform(get("/rest/task/daily")
 						.header(TIME_OFFSET_HEADER, offsetMinutes)
+						.header("AX-GTD-User-ID", USER_ID_1)
 						.with(SecurityMockMvcRequestPostProcessors.user(USERNAME_1).password(PASSWORD_1)))
 						.andExpect(status().isOk)
 						.andReturn()

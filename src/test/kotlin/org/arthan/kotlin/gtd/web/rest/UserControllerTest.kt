@@ -40,13 +40,6 @@ class UserControllerTest {
     @MockBean
     lateinit var userRepo: UserRepository
 
-	@Test
-    fun shouldGetPrincipalName() {
-        mockMvc.perform(get("/user/hello").with(user(USER_NAME).password("pass")))
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("name", `is`(USER_NAME)))
-                .andDo { println(it.response.contentAsString) }
-    }
 
     @Test
     fun shouldGetUser() {

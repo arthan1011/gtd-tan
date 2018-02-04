@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.google.gson.reflect.TypeToken
 import org.apache.commons.lang3.RandomStringUtils
+import org.apache.commons.lang3.RandomUtils
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
@@ -18,6 +19,7 @@ val jsonParser = JsonParser()
 inline fun <reified T> Gson.fromJson(json: String) = this.fromJson<T>(json, object: TypeToken<T>() {}.type)
 
 fun randomName(): String = RandomStringUtils.randomAlphanumeric(8)
+fun randomNumber(): Long = RandomUtils.nextLong(10, 100)
 
 fun utcInstant(year: Int, month: Int, day: Int, hour: Int): Instant {
 	return ZonedDateTime.of(year, month, day, hour, 0, 0, 0, ZoneOffset.UTC).toInstant()

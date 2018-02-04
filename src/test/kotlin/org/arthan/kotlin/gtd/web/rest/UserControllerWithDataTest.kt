@@ -33,14 +33,6 @@ class UserControllerWithDataTest {
     lateinit var userRepository: UserRepository
 
     @Test
-    fun shouldGetPrincipalName() {
-        mockMvc.perform(get("/user/hello"))
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("name", `is`("administrator")))
-                .andDo { println(it.response.contentAsString) }
-    }
-
-    @Test
     fun shouldGetUser() {
         val username = "test_username"
         val password = "test_password"

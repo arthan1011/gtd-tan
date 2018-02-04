@@ -64,10 +64,11 @@ class TaskServiceUnitTest {
 
 	@Test
 	fun shouldReturnStateForCompletedTasks() {
+		val unusedUserId: Long = 123456
 		Mockito.doReturn(listOf(
 				DailyTask(id = 34, userId = 1, name = "first", startDate = LocalDate.of(2015, 6, 7)),
 				DailyTask(id = 35, userId = 1, name = "second", startDate = LocalDate.of(2015, 6, 7))
-		)).`when`(taskService).findByUsername(Mockito.anyString())
+		)).`when`(taskService).findByUserId(Mockito.anyLong())
 
 		val firstDay = LocalDate.of(2015, 6, 8)
 		val secondDay = LocalDate.of(2015, 6, 9)
@@ -79,9 +80,9 @@ class TaskServiceUnitTest {
 		Mockito.doReturn(listOf(
 				TaskState(id = 1, taskId = 34, date = firstDay, state = TaskDateState.COMPLETED),
 				TaskState(id = 2, taskId = 35, date = secondDay, state = TaskDateState.COMPLETED)
-		)).`when`(taskService).getTaskStates(from = firstDay, to = secondDay, userId = "test_user")
+		)).`when`(taskService).getTaskStates(from = firstDay, to = secondDay, userId = unusedUserId)
 
-		val dateLineDates = taskService.getDateLineDates(0, "test_user", 0)
+		val dateLineDates = taskService.getDateLineDates(0, unusedUserId, 0)
 
 		/*         08.06.2015	09.06.2015
 		task 34 -> 		true  		false

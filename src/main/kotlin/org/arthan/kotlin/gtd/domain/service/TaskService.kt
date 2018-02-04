@@ -36,8 +36,7 @@ class TaskService @Autowired constructor(
 	}
 
     fun findByUsername(username: String): List<DailyTask> {
-        val tasks = dailyTaskRepository.findByUsername(username)
-        return tasks
+		return dailyTaskRepository.findByUsername(username)
     }
 
     fun createDailyTask(newTaskName: String, newTaskType: String, userId: Long, offset: Int): Long {

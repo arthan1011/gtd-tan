@@ -68,14 +68,17 @@ class DailyTaskResourceTest {
 
     @Test
     fun shouldCreateAndRetrieveOneTask() {
+		val user = createUser()
 		val name = "test_task"
         val taskDTO = NewTaskDTO(name)
         val postRequest = post("/rest/task/daily")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
+				.header("AX-GTD-User-ID", user.userId)
 				.header(TIME_OFFSET_HEADER, 180)
 				.content(parser.toJson(taskDTO))
 
         val getRequest = get("/rest/task/daily")
+				.header("AX-GTD-User-ID", user.userId)
 				.header(TIME_OFFSET_HEADER, 180)
 
 		// retrieve initial task list size
@@ -108,6 +111,7 @@ class DailyTaskResourceTest {
 		val firstMvcResult = mockMvc.perform(post("/rest/task/daily")
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
 				.header(TIME_OFFSET_HEADER, 180)
+				.header("AX-GTD-User-ID", testUser.userId)
 				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
 				.content(parser.toJson(NewTaskDTO(firstTaskName))))
 				.andExpect(status().isOk)
@@ -153,8 +157,8 @@ class DailyTaskResourceTest {
 		mockMvc.perform(
 				post("/rest/task/daily")
 						.contentType(MediaType.APPLICATION_JSON_UTF8)
+						.header("AX-GTD-User-ID", testUser.userId)
 						.header(TIME_OFFSET_HEADER, 180)
-						.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
 						.content(parser.toJson(NewTaskDTO(firstTaskName))))
 				.andExpect(status().isOk)
 
@@ -163,8 +167,8 @@ class DailyTaskResourceTest {
 		val secondMvcResult = mockMvc.perform(
 				post("/rest/task/daily")
 						.contentType(MediaType.APPLICATION_JSON_UTF8)
+						.header("AX-GTD-User-ID", testUser.userId)
 						.header(TIME_OFFSET_HEADER, 180)
-						.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
 						.content(parser.toJson(NewTaskDTO(secondTaskName))))
 				.andExpect(status().isOk)
 				.andReturn()
@@ -174,28 +178,28 @@ class DailyTaskResourceTest {
 		val dataLineItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser, 180)
 
 		assertEquals("date items should have two tasks", 2, dataLineItems.first().tasks.size)
-		assertEquals("tasks should be in correct order", secondTaskId, dataLineItems.first().tasks[0].id)
+		assertEquals("tasks should be in correct order", secondTaskId, dataLineItems.first().tasks[1].id)
 		assertTrue(
 				"tasks for today should be in incomplete state",
 				dataLineItems.last().tasks.all { it.completed == null })
 		assertFalse(
 				"second task for yesterday should be in failed state",
-				dataLineItems[dataLineItems.lastIndex - 1 - FUTURE_DATES_NUMBER].tasks[0].completed!!)
+				dataLineItems[dataLineItems.lastIndex - 1 - FUTURE_DATES_NUMBER].tasks[1].completed!!)
 		assertNull(
 				"first task for yesterday should be in incomplete state",
-				dataLineItems[dataLineItems.lastIndex - 1 - FUTURE_DATES_NUMBER].tasks[1].completed)
+				dataLineItems[dataLineItems.lastIndex - 1 - FUTURE_DATES_NUMBER].tasks[0].completed)
 		assertFalse(
 				"second task for day before yesterday should be in failed state",
-				dataLineItems[dataLineItems.lastIndex - 2 - FUTURE_DATES_NUMBER].tasks[0].completed!!)
+				dataLineItems[dataLineItems.lastIndex - 2 - FUTURE_DATES_NUMBER].tasks[1].completed!!)
 		assertNull(
 				"first task for day before yesterday should be in incomplete state",
-				dataLineItems[dataLineItems.lastIndex - 2 - FUTURE_DATES_NUMBER].tasks[1].completed)
+				dataLineItems[dataLineItems.lastIndex - 2 - FUTURE_DATES_NUMBER].tasks[0].completed)
 		assertNull(
 				"second task for 2 days before yesterday should be in incomplete state",
-				dataLineItems[dataLineItems.lastIndex - 3 - FUTURE_DATES_NUMBER].tasks[0].completed)
+				dataLineItems[dataLineItems.lastIndex - 3 - FUTURE_DATES_NUMBER].tasks[1].completed)
 		assertNull(
 				"first task for 2 days before yesterday should be in incomplete state",
-				dataLineItems[dataLineItems.lastIndex - 3 - FUTURE_DATES_NUMBER].tasks[1].completed)
+				dataLineItems[dataLineItems.lastIndex - 3 - FUTURE_DATES_NUMBER].tasks[0].completed)
 	}
 
 	@Test
@@ -203,12 +207,14 @@ class DailyTaskResourceTest {
 		val testUser: UserForTests = createUser()
 		mockMvc.perform(post("/rest/task/daily")
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.header("AX-GTD-User-ID", testUser.userId)
 				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
 				.content(parser.toJson(NewTaskDTO("Some_taskName"))))
 				.andExpect(status().isBadRequest)
 
 		mockMvc.perform(post("/rest/task/daily")
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.header("AX-GTD-User-ID", testUser.userId)
 				.header(TIME_OFFSET_HEADER, 180)
 				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
 				.content(parser.toJson(NewTaskDTO("Some_taskName"))))
@@ -239,8 +245,8 @@ class DailyTaskResourceTest {
 		var taskId: Long = -1
 		mockMvc.perform(post("/rest/task/daily")
 				.header(TIME_OFFSET_HEADER, offset)
+				.header("AX-GTD-User-ID", testUser.userId)
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
-				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password))
 				.content(parser.toJson(NewTaskDTO("Completable_user_task"))))
 				.andExpect(status().isOk)
 				.andDo { taskId = jsonParser.parse(it.response.contentAsString).asJsonObject["id"].asLong }
@@ -252,9 +258,9 @@ class DailyTaskResourceTest {
 
 		mockMvc.perform(put("/rest/task/daily/$taskId/state")
 				.header(TIME_OFFSET_HEADER, offset)
+				.header("AX-GTD-User-ID", testUser.userId)
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
-				.content("done")
-				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password)))
+				.content(parser.toJson(mapOf("value" to "done"))))
 				.andExpect(status().isOk)
 
 		val firstCompletedItems: List<DatelineItemDTO> = retrieveDateLineItems(testUser, offset)
@@ -278,6 +284,7 @@ class DailyTaskResourceTest {
 		var taskId: Long = -1
 		mockMvc.perform(post("/rest/task/daily")
 				.header(TIME_OFFSET_HEADER, 0)
+				.header("AX-GTD-User-ID", user.userId)
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
 				.with(SecurityMockMvcRequestPostProcessors.user(user.username).password(user.password))
 				.content(parser.toJson(NewTaskDTO(NAME_BEFORE_EDIT))))
@@ -286,6 +293,7 @@ class DailyTaskResourceTest {
 
 		mockMvc.perform(get("/rest/task/daily")
 				.header(TIME_OFFSET_HEADER, 0)
+				.header("AX-GTD-User-ID", user.userId)
 				.with(SecurityMockMvcRequestPostProcessors.user(user.username).password(user.password)))
 				.andExpect(status().isOk)
 				.andExpect(jsonPath("tasks[0].name", Matchers.`is`(NAME_BEFORE_EDIT)))
@@ -293,6 +301,7 @@ class DailyTaskResourceTest {
 		// Edit created task name and check
 		mockMvc.perform(put("/rest/task/daily/$taskId/name")
 				.header(TIME_OFFSET_HEADER, 0)
+				.header("AX-GTD-User-ID", user.userId)
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
 				.with(SecurityMockMvcRequestPostProcessors.user(user.username).password(user.password))
 				.content(parser.toJson(mapOf("name" to NAME_AFTER_EDIT))))
@@ -300,6 +309,7 @@ class DailyTaskResourceTest {
 
 		mockMvc.perform(get("/rest/task/daily")
 				.header(TIME_OFFSET_HEADER, 0)
+				.header("AX-GTD-User-ID", user.userId)
 				.with(SecurityMockMvcRequestPostProcessors.user(user.username).password(user.password)))
 				.andExpect(status().isOk)
 				.andExpect(jsonPath("tasks[0].name", Matchers.`is`(NAME_AFTER_EDIT)))
@@ -317,6 +327,7 @@ class DailyTaskResourceTest {
 		var taskId: Long = -1
 		mockMvc.perform(post("/rest/task/daily")
 				.header(TIME_OFFSET_HEADER, 0)
+				.header("AX-GTD-User-ID", user.userId)
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
 				.with(SecurityMockMvcRequestPostProcessors.user(user.username).password(user.password))
 				.content(parser.toJson(NewTaskDTO(FAILING_TASK_NAME))))
@@ -330,9 +341,10 @@ class DailyTaskResourceTest {
 		// change today task state to failed
 		mockMvc.perform(put("/rest/task/daily/$taskId/state")
 				.header(TIME_OFFSET_HEADER, 0)
+				.header("AX-GTD-User-ID", user.userId)
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
 				.with(SecurityMockMvcRequestPostProcessors.user(user.username).password(user.password))
-				.content("failed"))
+				.content(parser.toJson(mapOf("value" to "failed"))))
 				.andExpect(status().isOk)
 
 		val dateLineItemsAfter = retrieveDateLineItems(user, 0)
@@ -351,6 +363,7 @@ class DailyTaskResourceTest {
 		val newPomodoroTask = NewTaskDTO(name = POMODORO_TASK_NAME, type = "pomodoro")
 		mockMvc.perform(post("/rest/task/daily")
 				.header(TIME_OFFSET_HEADER, 0)
+				.header("AX-GTD-User-ID", user.userId)
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
 				.with(SecurityMockMvcRequestPostProcessors.user(user.username).password(user.password))
 				.content(parser.toJson(newPomodoroTask)))
@@ -358,6 +371,7 @@ class DailyTaskResourceTest {
 		val newInstantTask = NewTaskDTO(name = INSTANT_TASK_NAME, type = "instant")
 		mockMvc.perform(post("/rest/task/daily")
 				.header(TIME_OFFSET_HEADER, 0)
+				.header("AX-GTD-User-ID", user.userId)
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
 				.with(SecurityMockMvcRequestPostProcessors.user(user.username).password(user.password))
 				.content(parser.toJson(newInstantTask)))
@@ -381,8 +395,8 @@ class DailyTaskResourceTest {
 		val newInstantTask = NewTaskDTO(name = INSTANT_TASK_NAME, type = "instant")
 		mockMvc.perform(post("/rest/task/daily")
 								.header(TIME_OFFSET_HEADER, 0)
+								.header("AX-GTD-User-ID", firstUser.userId)
 								.contentType(MediaType.APPLICATION_JSON_UTF8)
-								.with(SecurityMockMvcRequestPostProcessors.user(firstUser.username).password(firstUser.password))
 								.content(parser.toJson(newInstantTask)))
 				.andExpect(status().isOk)
 		val dateLineItemsBefore = retrieveDateLineItems(firstUser, 0)
@@ -392,8 +406,8 @@ class DailyTaskResourceTest {
 		mockMvc.perform(put("/rest/task/daily/$taskId/state")
 								.header(TIME_OFFSET_HEADER, 0)
 								.contentType(MediaType.APPLICATION_JSON_UTF8)
-								.with(SecurityMockMvcRequestPostProcessors.user(secondUser.username).password(secondUser.password))
-								.content("failed"))
+								.header("AX-GTD-User-ID", secondUser.userId)
+								.content(parser.toJson(mapOf("value" to "failed"))))
 				.andExpect(status().isForbidden)
 
 
@@ -412,6 +426,7 @@ class DailyTaskResourceTest {
 	private fun retrieveDailyInfo(testUser: UserForTests, minutesOffset: Int): DailyDTO {
 		val mvcResult = mockMvc.perform(get("/rest/task/daily")
 				.header(TIME_OFFSET_HEADER, minutesOffset)
+				.header("AX-GTD-User-ID", testUser.userId)
 				.with(SecurityMockMvcRequestPostProcessors.user(testUser.username).password(testUser.password)))
 				.andExpect(status().isOk)
 				.andReturn()

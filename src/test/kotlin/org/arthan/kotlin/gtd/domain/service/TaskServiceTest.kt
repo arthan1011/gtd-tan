@@ -5,6 +5,7 @@ import org.arthan.kotlin.gtd.domain.model.User
 import org.arthan.kotlin.gtd.domain.repository.DailyTaskRepository
 import org.arthan.kotlin.gtd.domain.repository.UserRepository
 import org.arthan.kotlin.gtd.web.rest.randomName
+import org.arthan.kotlin.gtd.web.rest.randomNumber
 import org.arthan.kotlin.gtd.web.rest.utcInstant
 import org.junit.Assert
 import org.junit.Before
@@ -28,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class TaskServiceTest {
 
 	companion object {
+		private var USER_ID: Long = -1
 		private val USERNAME_1: String = randomName()
 		private val PASSWORD_1: String = randomName()
 		private val initialized: AtomicBoolean = AtomicBoolean(false)
@@ -49,7 +51,8 @@ class TaskServiceTest {
 	}
 
 	private fun initUsers() {
-		userRepo.save(User(USERNAME_1, PASSWORD_1, "USER", true))
+		val savedUser = userRepo.save(User(USERNAME_1, PASSWORD_1, "USER", true))
+		USER_ID = savedUser.id
 	}
 
 	@Autowired
@@ -64,7 +67,7 @@ class TaskServiceTest {
 		val offset = 0
 		val dailyTaskId = taskService.createDailyTask(newTaskName = "first_test_task",
 													  newTaskType = "instant",
-													  username = USERNAME_1,
+													  userId = USER_ID,
 													  offset = offset
 		)
 		val dailyTask = taskRepo.findOne(dailyTaskId)
