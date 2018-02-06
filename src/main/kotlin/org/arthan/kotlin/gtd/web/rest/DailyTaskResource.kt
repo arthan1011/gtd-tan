@@ -86,4 +86,12 @@ class DailyTaskResource @Autowired constructor(
 
 		return ResponseEntity.ok("success")
 	}
+
+	@DeleteMapping("/daily/{id}")
+	fun removeTask(
+			@PathVariable("id") taskId: Long,
+			credentials: Credentials
+	) {
+		taskService.deleteTask(taskId, credentials.userId)
+	}
 }

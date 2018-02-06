@@ -38,7 +38,7 @@ class DailyTaskResourceTimeOffsetTest {
 	companion object {
 		private val USERNAME_1: String = randomName()
 		private val PASSWORD_1: String = randomName()
-		private var USER_ID_1: Long = -1;
+		private var USER_ID_1: Long = -1
         private val initialized: AtomicBoolean = AtomicBoolean(false)
 	}
 

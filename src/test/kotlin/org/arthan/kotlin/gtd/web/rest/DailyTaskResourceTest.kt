@@ -10,6 +10,7 @@ import org.arthan.kotlin.gtd.web.rest.resolver.TIME_OFFSET_HEADER
 import org.hamcrest.Description
 import org.hamcrest.Matchers
 import org.hamcrest.TypeSafeMatcher
+import org.junit.Assert
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -416,6 +417,45 @@ class DailyTaskResourceTest {
 		val isCompleted: Boolean? = dateLineItemsAfter.find { it.today }!!.tasks.first().completed
 
 		assertNull("Task state should not change", isCompleted)
+	}
+
+	@Test
+	fun shouldDeleteSpecificTask() {
+		val user = createUser()
+		val firstTask = NewTaskDTO(name = "first_task_name", type = "instant")
+		val firstTaskResult = mockMvc.perform(post("/rest/task/daily")
+				.header(TIME_OFFSET_HEADER, 0)
+				.header("AX-GTD-User-ID", user.userId)
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.content(parser.toJson(firstTask)))
+				.andExpect(status().isOk)
+				.andReturn()
+		val firstTaskId = jsonParser.parse(firstTaskResult.response.contentAsString).asJsonObject["id"].asLong
+
+		val secondTask = NewTaskDTO(name = "first_task_name", type = "pomodoro")
+		val secondTaskResult = mockMvc.perform(post("/rest/task/daily")
+				.header(TIME_OFFSET_HEADER, 0)
+				.header("AX-GTD-User-ID", user.userId)
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.content(parser.toJson(secondTask)))
+				.andExpect(status().isOk)
+				.andReturn()
+		val secondTaskId = jsonParser.parse(secondTaskResult.response.contentAsString).asJsonObject["id"].asLong
+
+		val dateLineItemsBeforeDelete = retrieveDateLineItems(user, 0)
+		Assert.assertEquals("should have 2 tasks",2, dateLineItemsBeforeDelete.first().tasks.size)
+		Assert.assertTrue(dateLineItemsBeforeDelete.first().tasks.any { it.id == firstTaskId })
+		Assert.assertTrue(dateLineItemsBeforeDelete.first().tasks.any { it.id == secondTaskId })
+
+		mockMvc.perform(delete("/rest/task/daily/$firstTaskId")
+				.header(TIME_OFFSET_HEADER, 0)
+				.header("AX-GTD-User-ID", user.userId)
+		).andExpect(status().isOk)
+
+		val dateLineItemsAfterDelete = retrieveDateLineItems(user, 0)
+		Assert.assertEquals("should have only 1 tasks",1, dateLineItemsAfterDelete.first().tasks.size)
+		Assert.assertFalse(dateLineItemsAfterDelete.first().tasks.any { it.id == firstTaskId })
+		Assert.assertTrue(dateLineItemsAfterDelete.first().tasks.any { it.id == secondTaskId })
 	}
 
 	private fun retrieveDateLineItems(testUser: UserForTests, minutesOffset: Int): List<DatelineItemDTO> {

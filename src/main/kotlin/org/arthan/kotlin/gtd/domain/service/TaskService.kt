@@ -160,4 +160,14 @@ class TaskService @Autowired constructor(
 	fun findByUserId(userId: Long): List<DailyTask> {
 		return dailyTaskRepository.findByUserId(userId)
 	}
+
+	fun deleteTask(taskId: Long, userId: Long) {
+		val task = dailyTaskRepository.findOne(taskId)
+
+		if (task.userId != userId) {
+			throw ForbiddenException()
+		}
+
+		dailyTaskRepository.delete(taskId)
+	}
 }
