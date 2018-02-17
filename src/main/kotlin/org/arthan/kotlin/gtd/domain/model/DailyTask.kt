@@ -13,6 +13,9 @@ import javax.persistence.*
 
 @Entity
 @Table(name = "daily_task")
+@SecondaryTable(
+        name = "pomodoro_task_intervals",
+        pkJoinColumns = arrayOf(PrimaryKeyJoinColumn(name = "id", referencedColumnName = "id")))
 @NamedQueries(
         NamedQuery(
                 name = "DailyTask.findByUsername",
@@ -43,5 +46,8 @@ data class DailyTask(
 		var startDate: LocalDate? = null,
 
 		@Enumerated(EnumType.STRING)
-		var type: TaskType? = null
+		var type: TaskType? = null,
+
+        @Column(name = "intervals", table = "pomodoro_task_intervals")
+        var intervals: Int? = null
 )

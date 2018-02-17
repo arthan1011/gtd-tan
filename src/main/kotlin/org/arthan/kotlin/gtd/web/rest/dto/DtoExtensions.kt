@@ -10,7 +10,7 @@ import java.time.LocalDate
  */
 
 fun DailyTask.toTO(): TaskDTO {
-    return TaskDTO(id!!, name!!, type!!.name)
+    return TaskDTO(id!!, name!!, type!!.name, intervals)
 }
 
 fun LocalDate.toDTO(): DateDTO {

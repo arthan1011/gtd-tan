@@ -458,6 +458,24 @@ class DailyTaskResourceTest {
 		Assert.assertTrue(dateLineItemsAfterDelete.first().tasks.any { it.id == secondTaskId })
 	}
 
+	@Test
+	fun shouldSavePomodoroIntervals() {
+		val user = createUser()
+		val numberOfIntervals = 4
+		val firstTask = NewTaskDTO(name = "first_task_name", type = "pomodoro", intervals = numberOfIntervals)
+		mockMvc.perform(post("/rest/task/daily")
+				.header(TIME_OFFSET_HEADER, 0)
+				.header("AX-GTD-User-ID", user.userId)
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.content(parser.toJson(firstTask)))
+				.andExpect(status().isOk)
+
+		val tasks: List<TaskDTO> = retrieveDailyInfo(user, 0).tasks
+
+		assertEquals(1, tasks.size)
+		assertEquals("Pomodoro task should have correct amount of intervals", numberOfIntervals, tasks.first().intervals)
+	}
+
 	private fun retrieveDateLineItems(testUser: UserForTests, minutesOffset: Int): List<DatelineItemDTO> {
 		val dailyData: DailyDTO = retrieveDailyInfo(testUser, minutesOffset)
 		return dailyData.dateLineItems

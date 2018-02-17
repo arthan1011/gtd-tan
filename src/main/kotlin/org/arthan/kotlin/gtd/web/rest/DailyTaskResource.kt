@@ -47,6 +47,7 @@ class DailyTaskResource @Autowired constructor(
         val savedTaskId = taskService.createDailyTask(
 				newTaskName = newTask.name,
 				newTaskType = newTask.type,
+				newTaskIntervals = newTask.intervals,
 				userId = credentials.userId,
 				offset = clientMetaData.minuteOffset / 60
 		)

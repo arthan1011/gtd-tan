@@ -39,7 +39,13 @@ class TaskService @Autowired constructor(
 		return dailyTaskRepository.findByUsername(username)
     }
 
-    fun createDailyTask(newTaskName: String, newTaskType: String, userId: Long, offset: Int): Long {
+    fun createDailyTask(
+			newTaskName: String,
+			newTaskType: String,
+			newTaskIntervals: Int? = null,
+			userId: Long,
+			offset: Int
+	): Long {
 		val taskType: TaskType
 		try {
 			taskType = TaskType.valueOf(newTaskType.toUpperCase())
@@ -50,6 +56,7 @@ class TaskService @Autowired constructor(
 		val taskToSave = DailyTask(
 				name = newTaskName,
 				userId = userId,
+				intervals = newTaskIntervals,
 				startDate = dateService.getDay(offset),
 				type = taskType
 		)
